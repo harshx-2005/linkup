@@ -1297,7 +1297,7 @@ const Chat = () => {
     }, [conversations]);
 
     return (
-        <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
+        <div className="flex h-screen h-[100dvh] bg-gray-900 text-white overflow-hidden">
             <div className={`flex flex-col border-r border-gray-700 bg-gray-800 h-full flex-shrink-0 ${selectedConversation ? 'hidden md:flex md:w-80' : 'w-full md:w-80'}`}>
                 <Sidebar
                     conversations={conversations}
