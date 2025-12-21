@@ -100,6 +100,29 @@ const GroupInfoModal = ({ conversation, onClose, currentUser, onUpdate }) => {
     // Update Member item actions
 
 
+    // Existing handlers...
+
+    // NEW: Search Handler
+    const handleSearch = async (query) => {
+        setSearch(query);
+        if (!query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`/api/users/search?query=${query}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // Filter out existing members
+            const newUsers = res.data.filter(u => !members.some(m => m.id === u.id));
+            setSearchResults(newUsers);
+        } catch (error) {
+            console.error("Search failed:", error);
+        }
+    };
+
     const saveDescription = async () => {
         try {
             const token = localStorage.getItem('token');
