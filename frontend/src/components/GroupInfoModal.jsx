@@ -112,7 +112,7 @@ const GroupInfoModal = ({ conversation, onClose, currentUser, onUpdate }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`/api/users/search?query=${query}`, {
+            const res = await axios.get(`/api/users?search=${query}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             // Filter out existing members

@@ -1,0 +1,13 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Environment variables
+.env
+
+# Uploads (should store in cloud/S3 in production, don't commit local tests)
+uploads/*
+!uploads/.gitkeep
+
+# Logs
+*.log
