@@ -643,7 +643,7 @@ const ChatWindow = ({
             )}
 
             {/* Request Actions Overlay for Receiver */}
-            {conversation.requestStatus === 'pending' && conversation.createdBy !== currentUser.id ? (
+            {conversation.requestStatus === 'pending' && String(conversation.createdBy) !== String(currentUser.id) ? (
                 <div className="p-4 bg-gray-800 border-t border-gray-700 flex flex-col items-center justify-center gap-3 z-30">
                     <p className="text-gray-300 font-medium">Message Request</p>
                     <p className="text-sm text-gray-500 text-center max-w-md">
@@ -673,7 +673,7 @@ const ChatWindow = ({
             ) : (
                 /* Normal Input Area or Sent Banner */
                 <>
-                    {conversation.requestStatus === 'pending' && conversation.createdBy === currentUser.id && (
+                    {conversation.requestStatus === 'pending' && String(conversation.createdBy) === String(currentUser.id) && (
                         <div className="px-4 py-2 bg-blue-900/30 border-t border-blue-900/50 text-blue-200 text-sm text-center">
                             Message request sent. Following up before acceptance depends on their privacy settings.
                         </div>
