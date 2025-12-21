@@ -17,7 +17,8 @@ const app = express();
 const server = http.createServer(app);
 
 // CORS configuration
-const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000'].filter(Boolean);
+const allowedOrigins = [process.env.FRONTEND_URL, 'https://linkup-silk.vercel.app', 'http://localhost:5173', 'http://localhost:3000'].filter(Boolean);
+console.log('Allowed Origins:', allowedOrigins);
 app.use(cors({
     origin: (origin, callback) => {
         // Allow requests with no origin (like mobile apps or curl requests)
