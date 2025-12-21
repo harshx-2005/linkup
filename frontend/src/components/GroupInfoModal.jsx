@@ -279,7 +279,7 @@ const GroupInfoModal = ({ conversation, onClose, currentUser, onUpdate }) => {
                                         </div>
                                         {searchResults.map(user => (
                                             <div key={user.id} onClick={() => addMember(user.id)} className="flex items-center gap-3 p-2 hover:bg-gray-700 rounded-lg cursor-pointer">
-                                                <img src={user.avatar || 'https://via.placeholder.com/40'} className="w-8 h-8 rounded-full object-cover" alt="" />
+                                                <img src={user.avatar || 'https://placehold.co/40'} className="w-8 h-8 rounded-full object-cover" alt="" />
                                                 <span className="text-sm font-medium">{user.name}</span>
                                             </div>
                                         ))}

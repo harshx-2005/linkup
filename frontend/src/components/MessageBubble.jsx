@@ -243,7 +243,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                 alt="attachment"
                                 className="max-w-full max-h-96 rounded-lg cursor-pointer hover:opacity-90 transition object-contain bg-gray-800"
                                 onClick={() => onImageClick && onImageClick(message.attachmentUrl)}
-                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=Image+Error'; }}
+                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/150?text=Image+Error'; }}
                             />
                         )}
 

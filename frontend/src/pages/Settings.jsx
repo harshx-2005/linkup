@@ -259,7 +259,7 @@ const Settings = () => {
                                                 <div key={user.id} className="flex items-center justify-between bg-gray-900 p-3 rounded-lg">
                                                     <div className="flex items-center gap-3">
                                                         <img
-                                                            src={user.avatar || 'https://via.placeholder.com/40'}
+                                                            src={user.avatar || 'https://placehold.co/40'}
                                                             alt={user.name}
                                                             className="w-10 h-10 rounded-full object-cover"
                                                         />
