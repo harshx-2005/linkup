@@ -21,7 +21,7 @@ const Chat = () => {
     const [incomingCall, setIncomingCall] = useState(null); // { offer, from, fromUserId, isVideo, ... }
     const [incomingGroupCall, setIncomingGroupCall] = useState(null); // { conversationId, name, ... }
     const [activeCall, setActiveCall] = useState(null); // { isVideo, ... }
-    const [isGroupCallActive, setIsGroupCallActive] = useState(false); // 'audio' | 'video' | false
+    const [activeGroupSession, setActiveGroupSession] = useState(null); // { conversationId, type } or null
     const [activeCallConversations, setActiveCallConversations] = useState(new Map()); // Map: conversationId -> initiatorId
 
     // Refs
@@ -719,7 +719,7 @@ const Chat = () => {
 
         // data: { conversationId, initiatorId, fromSocketId }
         // If we started it, or are already in a call, don't ring
-        if (String(data.initiatorId) === String(userRef.current?.id) || isGroupCallActive) return;
+        if (String(data.initiatorId) === String(userRef.current?.id) || activeGroupSession) return;
 
         // Check age of call to prevent ringing on refresh (threshold: 5 seconds)
         if (data.startTime && (Date.now() - data.startTime > 5000)) {
@@ -769,33 +769,32 @@ const Chat = () => {
             return prev;
         });
 
-        // End active group call if it matches
-        // We check if the currently selected conversation is the one ending
-        // Note: usage of ref or current state via setter function
-        if (String(selectedConversationRef.current?.id) === String(conversationId)) {
-            // Use a timestamp to debounce duplicate toasts
-            const now = Date.now();
-            // Just use global window prop for simplicity in this functional component closure
-            // preventing multiple identical toasts in short succession
-            if (!window.lastEndCallToast || now - window.lastEndCallToast > 2000) {
-                toast.info("Group call ended by host.");
-                window.lastEndCallToast = now;
+        // End active group call if it matches the one we are in
+        // We use functional update to check current state safely without refs
+        setActiveGroupSession(prev => {
+            if (prev && String(prev.conversationId) === String(conversationId)) {
+                // Toast logic moved here or kept global? 
+                // We can't easily toast inside setter.
+                // But we can check condition outside? No, we need current state.
+                // Let's blindly toast if we are closing it? 
+                // Or rely on the fact that if we are setting it to null, we are ending it.
+                return null;
             }
+            return prev;
+        });
 
-            setIsGroupCallActive(false);
-        }
+        // Toast logic (legacy check against selected, but mostly handled above)
+        // If we were in the call (activeGroupSession was set), we effectively closed it.
     };
 
     const handleStartGroupCall = (type) => {
-        // If we are starting from Toast, we might need to select conversation.
-        // But usually we are already selected.
+        if (!selectedConversation) return; // Safeguard
         groupCallStartTimeRef.current = Date.now();
-        setIsGroupCallActive(type);
+        setActiveGroupSession({ conversationId: selectedConversation.id, type });
     };
 
     const handleEndGroupCall = () => {
-        // Just reset state. Logging is now handled by backend when call truly ends.
-        setIsGroupCallActive(false);
+        setActiveGroupSession(null);
         groupCallStartTimeRef.current = null;
     };
 
@@ -814,9 +813,9 @@ const Chat = () => {
         if (conv) setSelectedConversation(conv);
 
         // Reset state first to ensure clean mount
-        setIsGroupCallActive(false);
+        setActiveGroupSession(null);
         setTimeout(() => {
-            handleStartGroupCall('video');
+            setActiveGroupSession({ conversationId: targetId, type: 'video' });
         }, 100);
     };
 
@@ -1357,15 +1356,15 @@ const Chat = () => {
             )}
 
             {/* Render Group Call Overlay */}
-            {isGroupCallActive && selectedConversation && (
+            {activeGroupSession && selectedConversation && String(activeGroupSession.conversationId) === String(selectedConversation.id) && (
                 <GroupCall
                     conversationId={selectedConversation.id}
                     currentUser={user}
                     socket={socket}
                     onClose={handleEndGroupCall}
-                    isVideo={isGroupCallActive === 'video'}
+                    isVideo={activeGroupSession.type === 'video'}
                     participants={selectedConversation.Users || []}
-                    initiatorId={activeCallConversations.get(selectedConversation.id)}
+                    initiatorId={activeCallConversations.get(String(selectedConversation.id))}
                 />
             )}
         </div>

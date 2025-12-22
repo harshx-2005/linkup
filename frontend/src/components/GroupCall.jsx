@@ -85,6 +85,12 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
     const peersRef = useRef([]);
 
     useEffect(() => {
+        if (stream && userVideo.current) {
+            userVideo.current.srcObject = stream;
+        }
+    }, [stream, isVideoEnabled]);
+
+    useEffect(() => {
         let localStream = null;
 
         const initCall = async () => {
@@ -282,8 +288,8 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
                 ) : (
                     // Group Layout (Grid)
                     <div className={`grid gap-3 w-full h-full ${peers.length + 1 <= 2 ? 'grid-cols-1 md:grid-cols-2' :
-                            peers.length + 1 <= 4 ? 'grid-cols-2 grid-rows-2' :
-                                'grid-cols-2 md:grid-cols-3'
+                        peers.length + 1 <= 4 ? 'grid-cols-2 grid-rows-2' :
+                            'grid-cols-2 md:grid-cols-3'
                         }`}>
                         {/* Self Grid Item */}
                         <div className="relative bg-[#1f2c34] rounded-xl overflow-hidden shadow-lg border border-gray-800">
