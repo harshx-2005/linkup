@@ -101,6 +101,7 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
     const [stream, setStream] = useState(null);
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoEnabled, setIsVideoEnabled] = useState(isVideo);
+    const [isFrontCamera, setIsFrontCamera] = useState(true);
     const streamRef = useRef(null);
 
     const userVideo = useRef();
@@ -117,9 +118,16 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
 
         const initCall = async () => {
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
+                // Initial Constraints
+                const constraints = {
+                    video: isVideo ? { facingMode: "user" } : false,
+                    audio: true
+                };
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+
                 setStream(localStream);
                 streamRef.current = localStream;
+                setIsVideoEnabled(isVideo);
                 if (userVideo.current) userVideo.current.srcObject = localStream;
             } catch (err) {
                 console.error("Failed to get media:", err);
@@ -243,35 +251,82 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
 
     const toggleVideo = async () => {
         const s = streamRef.current;
+        // If we have video tracks, just toggle
         if (s && s.getVideoTracks().length > 0) {
             const track = s.getVideoTracks()[0];
             track.enabled = !track.enabled;
             setIsVideoEnabled(track.enabled);
         } else {
-            // Retry if no video track but user wants video
+            // No video track - try to acquire one
             if (!isVideoEnabled) {
                 try {
-                    const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    const newStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: isFrontCamera ? "user" : "environment" },
+                        audio: true
+                    });
+
+                    // Update state
                     setStream(newStream);
                     streamRef.current = newStream;
-                    if (userVideo.current) userVideo.current.srcObject = newStream;
                     setIsVideoEnabled(true);
 
                     // Update peers
-                    peersRef.current.forEach(({ peer }) => {
-                        // Replace tracks
-                        const p = peer.peer;
-                        const oldVideo = p.streams[0]?.getVideoTracks()[0];
-                        const newVideo = newStream.getVideoTracks()[0];
-
-                        if (oldVideo) p.replaceTrack(oldVideo, newVideo, p.streams[0]);
-                        else p.addTrack(newVideo, p.streams[0]); // Fallback might be tricky in Mesh
-                    });
+                    replaceStreamForPeers(newStream);
                 } catch (e) {
                     toast.error("Could not enable camera");
                 }
             }
         }
+    };
+
+    const switchCamera = async () => {
+        try {
+            const newMode = !isFrontCamera;
+            const constraints = {
+                video: { facingMode: newMode ? "user" : "environment" },
+                audio: true // Keep audio!
+            };
+
+            // Stop old video track
+            if (streamRef.current) {
+                streamRef.current.getVideoTracks().forEach(t => t.stop());
+            }
+
+            const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            setStream(newStream);
+            streamRef.current = newStream;
+            setIsFrontCamera(newMode);
+            setIsVideoEnabled(true);
+
+            replaceStreamForPeers(newStream);
+
+        } catch (err) {
+            console.error("Failed to switch camera:", err);
+            toast.error("Failed to switch camera");
+        }
+    };
+
+    const replaceStreamForPeers = (newStream) => {
+        peersRef.current.forEach(({ peer }) => {
+            const p = peer.peer;
+            const oldVideo = p.streams[0]?.getVideoTracks()[0];
+            const newVideo = newStream.getVideoTracks()[0];
+
+            // Check if stream exists on peer, if not we might be early
+            if (p.streams.length === 0) {
+                p.addStream(newStream);
+                return;
+            }
+
+            if (oldVideo && newVideo) p.replaceTrack(oldVideo, newVideo, p.streams[0]);
+            else if (newVideo) p.addTrack(newVideo, p.streams[0]);
+
+            // We generally keep audio track unless it changed (usually getUserMedia gives new audio too)
+            const oldAudio = p.streams[0]?.getAudioTracks()[0];
+            const newAudio = newStream.getAudioTracks()[0];
+            if (oldAudio && newAudio) p.replaceTrack(oldAudio, newAudio, p.streams[0]);
+        });
     };
 
     const handleEndCall = () => {
@@ -283,7 +338,7 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
 
     const getParticipantName = (id) => {
         const p = participants.find(u => String(u.id) === String(id));
-        return p ? p.name : `User ${id ? String(id).slice(-4) : ''}`;
+        return p ? p.name : `User ${id ? String(id).slice(-4) : ''} `;
     };
 
     const isOneOnOne = peers.length === 1;
@@ -315,10 +370,15 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
                             isSelf={false}
                         />
 
-                        {/* Self PIP */}
+                        {/* Self PIP - Using Video Component for reliability */}
                         <div className="absolute bottom-24 right-4 w-32 h-48 md:w-48 md:h-72 bg-gray-900 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-700/50 z-20 transition-all hover:scale-105">
                             {isVideoEnabled && stream ? (
-                                <video muted ref={userVideo} autoPlay playsInline className="w-full h-full object-cover transform scale-x-[-1]" />
+                                <Video
+                                    className="w-full h-full"
+                                    stream={stream}
+                                    name="You"
+                                    isSelf={true}
+                                />
                             ) : (
                                 <div className="w-full h-full flex flex-col items-center justify-center bg-[#1f2c34]">
                                     <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 font-bold mb-2">{currentUser.name?.[0]}</div>
@@ -329,14 +389,19 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
                     </div>
                 ) : (
                     // Group Layout (Grid)
-                    <div className={`grid gap-3 w-full h-full ${peers.length + 1 <= 2 ? 'grid-cols-1 md:grid-cols-2' :
-                        peers.length + 1 <= 4 ? 'grid-cols-2 grid-rows-2' :
-                            'grid-cols-2 md:grid-cols-3'
-                        }`}>
+                    <div className={`grid gap - 3 w - full h - full ${peers.length + 1 <= 2 ? 'grid-cols-1 md:grid-cols-2' :
+                            peers.length + 1 <= 4 ? 'grid-cols-2 grid-rows-2' :
+                                'grid-cols-2 md:grid-cols-3'
+                        } `}>
                         {/* Self Grid Item */}
                         <div className="relative bg-[#1f2c34] rounded-xl overflow-hidden shadow-lg border border-gray-800">
                             {isVideoEnabled && stream ? (
-                                <video muted ref={userVideo} autoPlay playsInline className="w-full h-full object-cover transform scale-x-[-1]" />
+                                <Video
+                                    className="w-full h-full"
+                                    stream={stream}
+                                    name="You"
+                                    isSelf={true}
+                                />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center flex-col">
                                     <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center text-2xl font-bold text-gray-400 mb-2">
@@ -345,9 +410,12 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
                                     <span className="text-xs text-gray-500">Camera Off</span>
                                 </div>
                             )}
-                            <div className="absolute bottom-3 left-3 text-white text-xs font-medium drop-shadow-md bg-black/40 px-2 py-1 rounded-md backdrop-blur-sm">
-                                You
-                            </div>
+                            {/* Overlay is handled by Video component mostly, but for 'Camera Off' state: */}
+                            {!isVideoEnabled && (
+                                <div className="absolute bottom-3 left-3 text-white text-xs font-medium drop-shadow-md bg-black/40 px-2 py-1 rounded-md backdrop-blur-sm">
+                                    You
+                                </div>
+                            )}
                         </div>
 
                         {/* Peers */}
@@ -366,10 +434,19 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
             </div>
 
             {/* Controls Bar */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-6 bg-[#1f2c34] px-8 py-3 rounded-full shadow-2xl border border-gray-700/50 z-50">
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-4 bg-[#1f2c34] px-6 py-3 rounded-full shadow-2xl border border-gray-700/50 z-50">
+                {/* Switch Camera (Mobile) */}
+                <button
+                    onClick={switchCamera}
+                    className="p-3 rounded-full bg-gray-700/50 text-white hover:bg-gray-600 transition-all"
+                    title="Switch Camera"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0-6-6-6-6-6s-6 0-6 6h12z" /><path d="M4 14c0 6 6 6 6 6s6 0 6-6H4z" /><path d="M12 10v4" /></svg>
+                </button>
+
                 <button
                     onClick={toggleVideo}
-                    className={`p-3 rounded-full transition-all ${!isVideoEnabled ? 'bg-white text-gray-900 hover:bg-gray-200' : 'bg-gray-700/50 text-white hover:bg-gray-600'}`}
+                    className={`p - 3 rounded - full transition - all ${!isVideoEnabled ? 'bg-white text-gray-900 hover:bg-gray-200' : 'bg-gray-700/50 text-white hover:bg-gray-600'} `}
                     title={isVideoEnabled ? "Turn Off Camera" : "Turn On Camera"}
                 >
                     {isVideoEnabled ? (
@@ -381,7 +458,7 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
 
                 <button
                     onClick={toggleMute}
-                    className={`p-3 rounded-full transition-all ${isMuted ? 'bg-white text-gray-900 hover:bg-gray-200' : 'bg-gray-700/50 text-white hover:bg-gray-600'}`}
+                    className={`p - 3 rounded - full transition - all ${isMuted ? 'bg-white text-gray-900 hover:bg-gray-200' : 'bg-gray-700/50 text-white hover:bg-gray-600'} `}
                     title={isMuted ? "Unmute" : "Mute"}
                 >
                     {isMuted ? (

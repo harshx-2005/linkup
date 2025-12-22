@@ -27,7 +27,8 @@ const ChatWindow = ({
     onRejectRequest,
     onBlockUser,
     onClearChat,
-    onBack
+    onBack,
+    onDismissCallBanner
 }) => {
     // Top-Lvl States
     const [newMessage, setNewMessage] = useState('');
@@ -528,10 +529,12 @@ const ChatWindow = ({
             {/* Active Call Banner */}
             {activeCallConversations.get(String(conversation.id)) && (
                 <div
-                    className="bg-green-600 px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-green-500 transition-colors shadow-md z-10 sticky top-0"
-                    onClick={() => onJoinGroupCall(String(conversation.id))}
+                    className="bg-green-600 px-4 py-3 flex items-center justify-between shadow-md z-10 sticky top-0"
                 >
-                    <div className="flex items-center gap-3">
+                    <div
+                        className="flex items-center gap-3 cursor-pointer flex-1"
+                        onClick={() => onJoinGroupCall(String(conversation.id))}
+                    >
                         <div className="bg-white/20 p-2 rounded-full animate-pulse">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-white">
                                 <path fillRule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 4.5z" clipRule="evenodd" />
@@ -542,9 +545,24 @@ const ChatWindow = ({
                             <p className="text-green-100 text-xs">Tap to join</p>
                         </div>
                     </div>
-                    <button className="bg-white text-green-700 px-6 py-1.5 rounded-full text-sm font-bold shadow-sm hover:scale-105 active:scale-95 transition-all">
-                        Join
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => onJoinGroupCall(String(conversation.id))}
+                            className="bg-white text-green-700 px-6 py-1.5 rounded-full text-sm font-bold shadow-sm hover:scale-105 active:scale-95 transition-all"
+                        >
+                            Join
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onDismissCallBanner) onDismissCallBanner(conversation.id);
+                            }}
+                            className="p-1.5 rounded-full bg-black/20 text-white hover:bg-black/40 transition-all"
+                            title="Dismiss Banner"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
                 </div>
             )}
 

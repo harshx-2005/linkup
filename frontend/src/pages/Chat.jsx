@@ -1237,6 +1237,14 @@ const Chat = () => {
         }
     };
 
+    const handleDismissCallBanner = (conversationId) => {
+        setActiveCallConversations(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(String(conversationId));
+            return newMap;
+        });
+    };
+
     const handleNewConversation = (newConv) => {
         setConversations((prev) => {
             const exists = prev.find(c => c.id === newConv.id);
@@ -1324,6 +1332,7 @@ const Chat = () => {
                         onStartGroupCall={handleStartGroupCall}
                         activeCallConversations={activeCallConversations}
                         onJoinGroupCall={handleJoinGroupCall}
+                        onDismissCallBanner={handleDismissCallBanner}
                         onTyping={() => socket.emit('typing', { conversationId: selectedConversation.id, userId: user.id, userName: user.name })}
                         onStopTyping={() => socket.emit('stop_typing', { conversationId: selectedConversation.id, userId: user.id })}
                         onlineUsers={onlineUsers}
@@ -1331,6 +1340,7 @@ const Chat = () => {
                         onRejectRequest={handleRejectRequest}
                         onBlockUser={handleBlockUser}
                         onClearChat={handleClearChat}
+                        onDismissCallBanner={handleDismissCallBanner}
                         onBack={() => setSelectedConversation(null)}
                     />
                 </div>
