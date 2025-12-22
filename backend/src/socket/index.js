@@ -35,13 +35,27 @@ const initializeSocket = (server) => {
             console.log(`Socket ${socket.id} joined conversation room: ${room}`);
 
             // Check if there is an active group call in this conversation
-            // Check if there is an active group call in this conversation
             const activeCallData = activeGroupCalls.get(conversationId);
-            // We ignore room size check to allow rejoining during Grace Period (when room is empty)
 
             if (activeCallData) {
-                // Emit event to this SPECIFIC socket so they get the "Incoming Call" screen
-                // activeCallData is { initiatorId, socketId, startTime }
+                // ZOMBIE CHECK: Verify if the call room actually has users
+                // logic: If activeGroupCalls says yes, but room "call_{id}" is empty -> Zombie
+                const callRoomStart = activeCallData.startTime;
+                // Allow a grace window of 10 seconds for initial join
+                if (Date.now() - callRoomStart > 10000) {
+                    const callRoomName = `call_${conversationId}`;
+                    const usersInCall = io.sockets.adapter.rooms.get(callRoomName);
+
+                    if (!usersInCall || usersInCall.size === 0) {
+                        console.log(`Detected ZOMBIE call in ${conversationId}. Cleaning up.`);
+                        activeGroupCalls.delete(conversationId);
+                        // Do NOT emit start. Emit end just in case anyone else has it stuck.
+                        io.to(room).emit('group_call_ended', { conversationId });
+                        return;
+                    }
+                }
+
+                // If valid, emit event to this SPECIFIC socket
                 socket.emit('group_call_started', {
                     conversationId,
                     initiatorId: activeCallData.initiatorId,

@@ -3,46 +3,67 @@ import SimplePeer from "simple-peer";
 import { toast } from 'react-toastify';
 
 // Professional Video Component
-const Video = ({ peer, className, name, isSelf }) => {
+const Video = ({ peer, className, name, isSelf, stream }) => {
     const ref = useRef();
     const [hasVideo, setHasVideo] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
 
     useEffect(() => {
-        const handleStream = (stream) => {
-            if (ref.current) {
-                ref.current.srcObject = stream;
-            }
+        if (ref.current && stream) {
+            ref.current.srcObject = stream;
+        }
+    }, [stream]);
 
-            const checkState = () => {
-                const videoTracks = stream.getVideoTracks();
-                const audioTracks = stream.getAudioTracks();
-                setHasVideo(videoTracks.length > 0 && videoTracks[0].enabled);
-                setIsMuted(audioTracks.length > 0 && !audioTracks[0].enabled);
-            };
+    useEffect(() => {
+        if (!stream) return;
 
-            checkState();
-
-            // Listen for track changes
-            stream.getVideoTracks().forEach(track => {
-                track.onmute = () => setHasVideo(false);
-                track.onunmute = () => setHasVideo(true);
-                track.onended = () => setHasVideo(false);
-            });
-            stream.getAudioTracks().forEach(track => {
-                track.onmute = () => setIsMuted(true);
-                track.onunmute = () => setIsMuted(false);
-            });
-
-            // Polling fallback
-            const interval = setInterval(checkState, 1000);
-            return () => clearInterval(interval);
+        const checkState = () => {
+            const videoTracks = stream.getVideoTracks();
+            const audioTracks = stream.getAudioTracks();
+            setHasVideo(videoTracks.length > 0 && videoTracks[0].enabled);
+            setIsMuted(audioTracks.length > 0 && !audioTracks[0].enabled);
         };
-        peer.on("stream", handleStream);
+
+        checkState();
+
+        // Listen for track changes
+        // Note: tracks might change references if replaced, but events should persist on track objects?
+        // Better to re-bind if stream changes.
+        const vTracks = stream.getVideoTracks();
+        const aTracks = stream.getAudioTracks();
+
+        const handleMuteVideo = () => setHasVideo(false);
+        const handleUnmuteVideo = () => setHasVideo(true);
+        const handleEndedVideo = () => setHasVideo(false);
+
+        const handleMuteAudio = () => setIsMuted(true);
+        const handleUnmuteAudio = () => setIsMuted(false);
+
+        vTracks.forEach(track => {
+            track.addEventListener('mute', handleMuteVideo);
+            track.addEventListener('unmute', handleUnmuteVideo);
+            track.addEventListener('ended', handleEndedVideo);
+        });
+        aTracks.forEach(track => {
+            track.addEventListener('mute', handleMuteAudio);
+            track.addEventListener('unmute', handleUnmuteAudio);
+        });
+
+        const interval = setInterval(checkState, 1000);
+
         return () => {
-            peer.off("stream", handleStream);
+            clearInterval(interval);
+            vTracks.forEach(track => {
+                track.removeEventListener('mute', handleMuteVideo);
+                track.removeEventListener('unmute', handleUnmuteVideo);
+                track.removeEventListener('ended', handleEndedVideo);
+            });
+            aTracks.forEach(track => {
+                track.removeEventListener('mute', handleMuteAudio);
+                track.removeEventListener('unmute', handleUnmuteAudio);
+            });
         };
-    }, [peer]);
+    }, [stream]);
 
     return (
         <div className={`relative bg-[#1f2c34] ${className} flex items-center justify-center overflow-hidden rounded-xl border border-gray-800 shadow-lg`}>
@@ -75,6 +96,7 @@ const Video = ({ peer, className, name, isSelf }) => {
 };
 
 const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = true, participants = [], initiatorId }) => {
+    // Peers: { peerID, socketID, peer, stream }
     const [peers, setPeers] = useState([]);
     const [stream, setStream] = useState(null);
     const [isMuted, setIsMuted] = useState(false);
@@ -125,7 +147,7 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
 
                 // We are the joiner, we initiate
                 const peer = createPeer(socketId, socket.id, streamRef.current);
-                const peerItem = { peerID: userId, socketID: socketId, peer };
+                const peerItem = { peerID: userId, socketID: socketId, peer, stream: null };
                 peersRef.current.push(peerItem);
                 setPeers(prev => [...prev, peerItem]);
             });
@@ -135,7 +157,7 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
             // New user joined, we accept
             if (peersRef.current.find(p => p.socketID === payload.callerID)) return;
             const peer = addPeer(payload.signal, payload.callerID, streamRef.current);
-            const peerItem = { peerID: payload.callerUserID, socketID: payload.callerID, peer };
+            const peerItem = { peerID: payload.callerUserID, socketID: payload.callerID, peer, stream: null };
             peersRef.current.push(peerItem);
             setPeers(prev => [...prev, peerItem]);
         });
@@ -175,10 +197,23 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
         };
     }, []);
 
+    const updatePeerStream = (id, stream) => {
+        setPeers(prev => prev.map(p => {
+            if (p.socketID === id) return { ...p, stream };
+            return p;
+        }));
+        // Update Ref too
+        const idx = peersRef.current.findIndex(p => p.socketID === id);
+        if (idx !== -1) peersRef.current[idx].stream = stream;
+    };
+
     function createPeer(userToSignal, callerID, stream) {
         const peer = new SimplePeer({ initiator: true, trickle: false, stream });
         peer.on("signal", (signal) => {
             socket.emit("sending_signal", { userToSignal, callerID, callerUserID: currentUser.id, signal });
+        });
+        peer.on("stream", (remoteStream) => {
+            updatePeerStream(userToSignal, remoteStream);
         });
         return peer;
     }
@@ -187,6 +222,9 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
         const peer = new SimplePeer({ initiator: false, trickle: false, stream });
         peer.on("signal", (signal) => {
             socket.emit("returning_signal", { signal, callerID });
+        });
+        peer.on("stream", (remoteStream) => {
+            updatePeerStream(callerID, remoteStream);
         });
         peer.signal(incomingSignal);
         return peer;
@@ -225,8 +263,6 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
                         const p = peer.peer;
                         const oldVideo = p.streams[0]?.getVideoTracks()[0];
                         const newVideo = newStream.getVideoTracks()[0];
-                        const oldAudio = p.streams[0]?.getAudioTracks()[0];
-                        const newAudio = newStream.getAudioTracks()[0];
 
                         if (oldVideo) p.replaceTrack(oldVideo, newVideo, p.streams[0]);
                         else p.addTrack(newVideo, p.streams[0]); // Fallback might be tricky in Mesh
@@ -271,7 +307,13 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
                     // 1-on-1 Layout (WhatsApp Style: Remote Full, Self PIP)
                     <div className="relative w-full h-full rounded-2xl overflow-hidden bg-[#1f2c34] shadow-2xl border border-gray-800">
                         {/* Remote Peer */}
-                        <Video peer={peers[0].peer} className="w-full h-full border-none rounded-none" name={getParticipantName(peers[0].peerID)} isSelf={false} />
+                        <Video
+                            peer={peers[0].peer}
+                            stream={peers[0].stream}
+                            className="w-full h-full border-none rounded-none"
+                            name={getParticipantName(peers[0].peerID)}
+                            isSelf={false}
+                        />
 
                         {/* Self PIP */}
                         <div className="absolute bottom-24 right-4 w-32 h-48 md:w-48 md:h-72 bg-gray-900 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-700/50 z-20 transition-all hover:scale-105">
@@ -310,7 +352,14 @@ const GroupCall = ({ conversationId, currentUser, socket, onClose, isVideo = tru
 
                         {/* Peers */}
                         {peers.map((peerObj) => (
-                            <Video key={peerObj.peerID} peer={peerObj.peer} className="w-full h-full" name={getParticipantName(peerObj.peerID)} isSelf={false} />
+                            <Video
+                                key={peerObj.peerID}
+                                peer={peerObj.peer}
+                                stream={peerObj.stream}
+                                className="w-full h-full"
+                                name={getParticipantName(peerObj.peerID)}
+                                isSelf={false}
+                            />
                         ))}
                     </div>
                 )}
