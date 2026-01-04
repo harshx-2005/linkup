@@ -1,0 +1,111 @@
+{
+    "name": "AI Image Gen (LinkUp)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "imagine",
+                "options": {}
+            },
+            "id": "18f0a3e0-6b3a-4e2b-9a8c-7f5d4e1b2c3d",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                460,
+                340
+            ],
+            "webhookId": "18f0a3e0-6b3a-4e2b-9a8c-7f5d4e1b2c3d"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:5000/api/messages",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "conversationId",
+                            "value": "={{$json.body.conversationId}}"
+                        },
+                        {
+                            "name": "content",
+                            "value": "🤖 Here is your image for: {{$json.body.prompt}}"
+                        },
+                        {
+                            "name": "attachmentUrl",
+                            "value": "https://image.pollinations.ai/prompt/{{$json.body.prompt.replace(/ /g, '%20')}}"
+                        },
+                        {
+                            "name": "messageType",
+                            "value": "image"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "29g1b4f1-7c4d-5f3e-0b9d-8g6e5f2c3d4e",
+            "name": "Send to Chat",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                900,
+                340
+            ]
+        },
+        {
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "prompt",
+                            "value": "={{$json.body.prompt}}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "30h2c5g2-8d5e-6g4f-1c0e-9h7f6g3d4e5f",
+            "name": "Set Prompt",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 1,
+            "position": [
+                680,
+                340
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Set Prompt",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Set Prompt": {
+            "main": [
+                [
+                    {
+                        "node": "Send to Chat",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

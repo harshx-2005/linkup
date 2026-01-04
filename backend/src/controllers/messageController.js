@@ -65,10 +65,36 @@ const getMessages = async (req, res) => {
     }
 };
 
+// [NEW] Axios for n8n
+const axios = require('axios');
+
 const sendMessage = async (req, res) => {
     try {
         const { conversationId, content, messageType, attachmentUrl } = req.body;
         const senderId = req.user.id;
+
+        // [NEW] AI Hook: Check for /imagine
+        if (content.startsWith('/imagine ')) {
+            const prompt = content.replace('/imagine ', '').trim();
+            const n8nUrl = process.env.N8N_WEBHOOK_URL;
+
+            if (n8nUrl) {
+                // Trigger n8n asynchronously (don't block the user's message sending entirely, or maybe only send this?)
+                // Strategy: Send a "Generating..." message or just trigger logic?
+                // For simplicity, we just trigger n8n and let n8n reply.
+                // We do NOT save the /imagine command as a permanent message if we want to keep chat clean, 
+                // OR we save it so the user sees what they typed. Saving it is better UX.
+
+                // Let's fire and forget the webhook
+                axios.post(n8nUrl, {
+                    prompt,
+                    conversationId,
+                    userId: senderId
+                }).catch(err => console.error("n8n Webhook Error:", err.message));
+
+                // Continue to save the user's command as a normal text message
+            }
+        }
 
         // Validation: Block Status & Pending Request
         const conversation = await Conversation.findByPk(conversationId);
