@@ -104,18 +104,21 @@ const sendMessage = async (req, res) => {
             const n8nUrl = process.env.N8N_WEBHOOK_URL;
 
             if (n8nUrl) {
-                // Trigger n8n asynchronously (don't block the user's message sending entirely, or maybe only send this?)
-                // Strategy: Send a "Generating..." message or just trigger logic?
-                // For simplicity, we just trigger n8n and let n8n reply.
+                // Trigger n8n asynchronously
                 // We do NOT save the /imagine command as a permanent message if we want to keep chat clean, 
                 // OR we save it so the user sees what they typed. Saving it is better UX.
 
+                console.log("Triggering n8n Webhook:", n8nUrl);
                 // Let's fire and forget the webhook
-                axios.post(n8nUrl, {
-                    prompt,
-                    conversationId,
-                    userId: senderId
-                }).catch(err => console.error("n8n Webhook Error:", err.message));
+                try {
+                    axios.post(n8nUrl, {
+                        prompt,
+                        conversationId,
+                        userId: senderId
+                    }).catch(err => console.error("n8n Webhook Error:", err.message));
+                } catch (e) {
+                    console.error("n8n Sync Error", e);
+                }
 
                 // Continue to save the user's command as a normal text message
             }
