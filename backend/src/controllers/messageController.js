@@ -157,12 +157,22 @@ const sendMessage = async (req, res) => {
             }
         }
 
+        // [Fix] Caching: Append random seed to Pollinations URLs
+        if (attachmentUrl && attachmentUrl.includes('pollinations.ai')) {
+            const separator = attachmentUrl.includes('?') ? '&' : '?';
+            // We re-assign message.attachmentUrl effectively by modifying the variable before creation
+            // Note: const { attachmentUrl } was used above, but we can't reassign const.
+            // Let's change destructuring to let or use a new variable.
+        }
+
         const message = await Message.create({
             conversationId,
             senderId,
             content,
             messageType: messageType || 'text',
-            attachmentUrl,
+            attachmentUrl: (attachmentUrl && attachmentUrl.includes('pollinations.ai'))
+                ? `${attachmentUrl}${attachmentUrl.includes('?') ? '&' : '?'}seed=${Date.now()}`
+                : attachmentUrl,
         });
 
         // Fetch message with sender details
