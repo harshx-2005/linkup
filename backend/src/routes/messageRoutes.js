@@ -5,7 +5,11 @@ const verifyToken = require('../middlewares/authMiddleware');
 const router = express.Router();
 
 router.get('/:conversationId', verifyToken, getMessages);
+// Protected user routes
 router.post('/send', verifyToken, sendMessage);
+
+// Internal/Bot routes (Unprotected or API Key protected in future)
+router.post('/bot', sendMessage);
 router.post('/seen', verifyToken, markMessagesAsSeen);
 router.post('/delivered', verifyToken, markMessagesAsDelivered);
 router.delete('/:id', verifyToken, deleteMessage);

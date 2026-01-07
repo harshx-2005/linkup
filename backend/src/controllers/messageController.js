@@ -71,7 +71,32 @@ const axios = require('axios');
 const sendMessage = async (req, res) => {
     try {
         const { conversationId, content, messageType, attachmentUrl } = req.body;
-        const senderId = req.user.id;
+
+        let senderId;
+        if (req.user) {
+            senderId = req.user.id;
+        } else {
+            // [Fix] Handle unauthenticated Bot/AI requests
+            // Attempt to attribute the message to the last active user in the conversation (usually the one who typed /imagine)
+            try {
+                const lastMsg = await Message.findOne({
+                    where: { conversationId },
+                    order: [['createdAt', 'DESC']],
+                    attributes: ['senderId']
+                });
+                if (lastMsg) {
+                    senderId = lastMsg.senderId;
+                } else {
+                    // Fallback: Pick any member
+                    const member = await ConversationMember.findOne({ where: { conversationId } });
+                    if (member) senderId = member.userId;
+                    else return res.status(400).json({ message: "Invalid Conversation ID" });
+                }
+            } catch (e) {
+                console.error("Bot Sender Inference Error:", e);
+                return res.status(500).json({ message: "Bot Error" });
+            }
+        }
 
         // [NEW] AI Hook: Check for /imagine
         if (content.startsWith('/imagine ')) {
