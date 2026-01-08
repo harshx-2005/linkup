@@ -42,7 +42,7 @@
                         },
                         {
                             "name": "attachmentUrl",
-                            "value": "https://image.pollinations.ai/prompt/{{$json.body.prompt.replace(/ /g, '%20')}}"
+                            "value": "https://pollinations.ai/p/{{$json.body.prompt.replace(/ /g, '%20')}}"
                         },
                         {
                             "name": "messageType",

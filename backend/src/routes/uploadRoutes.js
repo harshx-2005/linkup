@@ -7,4 +7,7 @@ const router = express.Router();
 
 router.post('/', verifyToken, upload.single('file'), uploadFile);
 
+// [NEW] Bot Upload Route (Unauthenticated for n8n)
+router.post('/bot', upload.single('file'), uploadFile);
+
 module.exports = router;

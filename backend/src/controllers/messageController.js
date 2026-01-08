@@ -158,11 +158,10 @@ const sendMessage = async (req, res) => {
         }
 
         // [Fix] Caching: Append random seed to Pollinations URLs
+        // [Fix] Caching: Append random seed to Pollinations URLs
         if (attachmentUrl && attachmentUrl.includes('pollinations.ai')) {
+            // Logic remains valid for both `image.pollinations.ai` and `pollinations.ai/p/`
             const separator = attachmentUrl.includes('?') ? '&' : '?';
-            // We re-assign message.attachmentUrl effectively by modifying the variable before creation
-            // Note: const { attachmentUrl } was used above, but we can't reassign const.
-            // Let's change destructuring to let or use a new variable.
         }
 
         const message = await Message.create({
