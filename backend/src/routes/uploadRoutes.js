@@ -7,7 +7,11 @@ const router = express.Router();
 
 router.post('/', verifyToken, upload.single('file'), uploadFile);
 
-// [NEW] Bot Upload Route (Unauthenticated for n8n)
-router.post('/bot', upload.single('file'), uploadFile);
+const { uploadBotFile } = require('../controllers/botUploadController');
+const multer = require('multer');
+const memoryUpload = multer({ storage: multer.memoryStorage() });
+
+// [NEW] Bot Upload Route (Buffer -> Cloudinary)
+router.post('/bot', memoryUpload.single('file'), uploadBotFile);
 
 module.exports = router;
