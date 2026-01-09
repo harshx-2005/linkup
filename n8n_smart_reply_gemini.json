@@ -37,7 +37,7 @@
                     "parameters": [
                         {
                             "name": "contents",
-                            "value": "={{ [{\n    \"role\": \"user\",\n    \"parts\": [{\n        \"text\": \"Act as the user (me) replying to a friend in a chat app. Generate 3 short, casual, and natural replies based on the incoming message context.\\n\\nRules:\\n1. Be conversational and human-like (use slang if appropriate, e.g. 'lol', 'yeah').\\n2. Do NOT act like an AI or assistant.\\n3. Keep it brief (1-5 words preferred, max 10).\\n\\nIncoming Context:\\n\" + $json.body.chat + \"\\n\\nOutput ONLY a valid JSON array of strings, e.g.: [\\\"Sounds good\\\", \\\"Where are you?\\\", \\\"Lol no\\\"]\\n\\nDo not include ```json blocks.\"\n    }]\n}] }}"
+                            "value": "={{ [{\n    \"role\": \"user\",\n    \"parts\": [{\n        \"text\": \"Act as the user (me) replying to a friend in a chat app. Generate 5 short, casual, and natural replies based on the incoming message context.\\n\\nRules:\\n1. Be conversational and human-like (use slang if appropriate, e.g. 'lol', 'yeah').\\n2. Do NOT act like an AI or assistant.\\n3. Keep it brief (1-5 words preferred, max 10).\\n\\nIncoming Context:\\n\" + $json.body.chat + \"\\n\\nOutput ONLY a valid JSON array of strings, e.g.: [\\\"Sounds good\\\", \\\"Where are you?\\\", \\\"Lol no\\\", \\\"I'm busy\\\", \\\"Call me\\\"]\\n\\nDo not include ```json blocks.\"\n    }]\n}] }}"
                         }
                     ]
                 },
