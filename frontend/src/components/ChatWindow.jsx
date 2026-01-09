@@ -744,7 +744,7 @@ const ChatWindow = ({
                     <div className="p-4 bg-gray-800 border-t border-gray-700 relative">
                         {/* [MODIFIED] Smart Replies - WhatsApp Style Pills */}
                         {smartReplies.length > 0 && (
-                            <div className="flex flex-wrap gap-2 px-4 pb-3 animate-in slide-in-from-bottom-2">
+                            <div className="flex overflow-x-auto gap-2 px-4 pb-3 animate-in slide-in-from-bottom-2 no-scrollbar">
                                 {smartReplies.map((reply, idx) => (
                                     <button
                                         key={idx}
@@ -886,7 +886,10 @@ const ChatWindow = ({
 
                                 <textarea
                                     value={newMessage}
-                                    onChange={handleInputChange}
+                                    onChange={(e) => {
+                                        handleInputChange(e);
+                                        if (smartReplies.length > 0) setSmartReplies([]);
+                                    }}
                                     onBlur={handleBlur}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
