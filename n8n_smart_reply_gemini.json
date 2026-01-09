@@ -1,0 +1,121 @@
+{
+    "name": "LinkUp Smart Replies (Gemini)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "smart-replies",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook",
+            "name": "Webhook"
+        },
+        {
+            "parameters": {
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCtfIsUUcyjsvTgweNWSG1HRd_laIPDKXk",
+                "method": "POST",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "contents",
+                            "value": "={{ [{\n    \"role\": \"user\",\n    \"parts\": [{\n        \"text\": \"You are a helpful assistant. Generate 3 short, natural, concise responses for the user based on the chat history provided. \\n\\nContext:\\n\" + $json.body.chat + \"\\n\\nOutput ONLY a valid JSON array of strings, like this: [\\\"Yes, sure\\\", \\\"I will check\\\", \\\"Not right now\\\"]\\n\\nDo not include ```json blocks.\"\n    }]\n}] }}"
+                        },
+                        {
+                            "name": "generationConfig",
+                            "value": "={{ {\n    \"responseMimeType\": \"application/json\"\n} }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                220,
+                0
+            ],
+            "id": "gemini-api",
+            "name": "Gemini 1.5 Flash"
+        },
+        {
+            "parameters": {
+                "jsCode": "let rawContent = items[0].json.candidates[0].content.parts[0].text;\n\n// Clean up formatting if AI adds markdown\nlet content = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();\n\nlet replies = [];\ntry {\n  replies = JSON.parse(content);\n} catch (e) {\n  replies = [\"👍\", \"Okay\", \"Sounds good\"];\n}\n\nreturn [{ json: { output: replies } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                440,
+                0
+            ],
+            "id": "format-gemini-output",
+            "name": "Format Output"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json.output }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                660,
+                0
+            ],
+            "id": "respond",
+            "name": "Respond"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini 1.5 Flash",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini 1.5 Flash": {
+            "main": [
+                [
+                    {
+                        "node": "Format Output",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format Output": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
