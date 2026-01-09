@@ -1,0 +1,131 @@
+{
+    "name": "LinkUp Smart Replies V2",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "smart-replies",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook",
+            "name": "Start Webhook"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.body.chat }}",
+                "hasOutputParser": true,
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1.4,
+            "position": [
+                220,
+                0
+            ],
+            "id": "basic-llm-chain",
+            "name": "Basic LLM Chain"
+        },
+        {
+            "parameters": {
+                "model": "gpt-4o-mini",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1,
+            "position": [
+                220,
+                220
+            ],
+            "id": "openai-model",
+            "name": "OpenAI Model",
+            "credentials": {
+                "openAiApi": {
+                    "id": "YOUR_CREDENTIAL_ID_HERE",
+                    "name": "OpenAI account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsonSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"output\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"minItems\": 3,\n      \"maxItems\": 3\n    }\n  }\n}"
+            },
+            "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+            "typeVersion": 1.2,
+            "position": [
+                380,
+                220
+            ],
+            "id": "output-parser",
+            "name": "Format JSON"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json.output }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                600,
+                0
+            ],
+            "id": "respond",
+            "name": "Send Reply"
+        }
+    ],
+    "connections": {
+        "Start Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Model": {
+            "ai_language_model": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "type": "ai_language_model",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format JSON": {
+            "ai_output_parser": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "type": "ai_output_parser",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Basic LLM Chain": {
+            "main": [
+                [
+                    {
+                        "node": "Send Reply",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

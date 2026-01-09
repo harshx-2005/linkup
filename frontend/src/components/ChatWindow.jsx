@@ -844,116 +844,114 @@ const ChatWindow = ({
                                     title="Attach"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+
+
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
                                     </svg>
                                 </button>
 
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
-                            </svg>
+                                {/* [NEW] Smart Reply Button */}
+                                <button
+                                    type="button"
+                                    onClick={handleSmartReply}
+                                    className={`p-2 transition-colors ${isLoadingReplies ? 'text-blue-400 animate-pulse' : 'text-gray-400 hover:text-yellow-400'}`}
+                                    title="Get Smart Replies"
+                                    disabled={isLoadingReplies}
+                                >
+                                    ✨
                                 </button>
 
-                    {/* [NEW] Smart Reply Button */}
-                    <button
-                        type="button"
-                        onClick={handleSmartReply}
-                        className={`p-2 transition-colors ${isLoadingReplies ? 'text-blue-400 animate-pulse' : 'text-gray-400 hover:text-yellow-400'}`}
-                        title="Get Smart Replies"
-                        disabled={isLoadingReplies}
-                    >
-                        ✨
-                    </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowEmojiPicker(!showEmojiPicker);
+                                        setIsAttachmentMenuOpen(false);
+                                    }}
+                                    className={`text-gray-400 hover:text-yellow-400 p-2 transition-colors ${showEmojiPicker ? 'text-yellow-400' : ''}`}
+                                    title="Emoji"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm6.75 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75z" />
+                                    </svg>
+                                </button>
 
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setShowEmojiPicker(!showEmojiPicker);
-                            setIsAttachmentMenuOpen(false);
-                        }}
-                        className={`text-gray-400 hover:text-yellow-400 p-2 transition-colors ${showEmojiPicker ? 'text-yellow-400' : ''}`}
-                        title="Emoji"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm6.75 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75z" />
-                        </svg>
-                    </button>
+                                <textarea
+                                    value={newMessage}
+                                    onChange={handleInputChange}
+                                    onBlur={handleBlur}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSend(e);
+                                        }
+                                    }}
+                                    placeholder={selectedFiles.length > 0 ? "Add a caption..." : "Type a message..."}
+                                    className="flex-1 p-3 rounded-xl bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none overflow-hidden mx-2 placeholder-gray-400"
+                                    rows={1}
+                                    disabled={isUploading}
+                                />
 
-                    <textarea
-                        value={newMessage}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSend(e);
-                            }
-                        }}
-                        placeholder={selectedFiles.length > 0 ? "Add a caption..." : "Type a message..."}
-                        className="flex-1 p-3 rounded-xl bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none overflow-hidden mx-2 placeholder-gray-400"
-                        rows={1}
-                        disabled={isUploading}
-                    />
-
-                    {newMessage.trim() || selectedFiles.length > 0 ? (
-                        <button
-                            type="submit"
-                            className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-full shadow-lg transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={isUploading}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-0.5">
-                                <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-                            </svg>
-                        </button>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={startRecording}
-                            className="bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full hover:shadow-lg transition transform active:scale-95"
-                            title="Record Voice Note"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                <path d="M8.25 4.5a3.75 3.75 0 117.5 0v8.25a3.75 3.75 0 11-7.5 0V4.5z" />
-                                <path d="M6 10.5a.75.75 0 01.75.75v1.5a5.25 5.25 0 1010.5 0v-1.5a.75.75 0 011.5 0v1.5a6.751 6.751 0 01-6 6.709v2.291h3a.75.75 0 010 1.5h-7.5a.75.75 0 010-1.5h3v-2.291a6.751 6.751 0 01-6-6.709v-1.5A.75.75 0 016 10.5z" />
-                            </svg>
-                        </button>
-                    )}
-                </form>
+                                {newMessage.trim() || selectedFiles.length > 0 ? (
+                                    <button
+                                        type="submit"
+                                        className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-full shadow-lg transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={isUploading}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-0.5">
+                                            <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                                        </svg>
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={startRecording}
+                                        className="bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full hover:shadow-lg transition transform active:scale-95"
+                                        title="Record Voice Note"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                            <path d="M8.25 4.5a3.75 3.75 0 117.5 0v8.25a3.75 3.75 0 11-7.5 0V4.5z" />
+                                            <path d="M6 10.5a.75.75 0 01.75.75v1.5a5.25 5.25 0 1010.5 0v-1.5a.75.75 0 011.5 0v1.5a6.751 6.751 0 01-6 6.709v2.291h3a.75.75 0 010 1.5h-7.5a.75.75 0 010-1.5h3v-2.291a6.751 6.751 0 01-6-6.709v-1.5A.75.75 0 016 10.5z" />
+                                        </svg>
+                                    </button>
+                                )}
+                            </form>
                         )}
-        </div>
+                    </div>
                 </>
             )}
 
-{/* Modals */ }
-{
-    showGroupInfo && (
-        <GroupInfoModal
-            conversation={conversation}
-            onClose={() => setShowGroupInfo(false)}
-            currentUser={currentUser}
-        />
-    )
-}
+            {/* Modals */}
+            {
+                showGroupInfo && (
+                    <GroupInfoModal
+                        conversation={conversation}
+                        onClose={() => setShowGroupInfo(false)}
+                        currentUser={currentUser}
+                    />
+                )
+            }
 
-{/* Image Lightbox */ }
-{
-    lightboxImage && (
-        <ImageLightbox
-            imageUrl={lightboxImage}
-            onClose={() => setLightboxImage(null)}
-        />
-    )
-}
+            {/* Image Lightbox */}
+            {
+                lightboxImage && (
+                    <ImageLightbox
+                        imageUrl={lightboxImage}
+                        onClose={() => setLightboxImage(null)}
+                    />
+                )
+            }
 
-{/* Camera Modal */ }
-{
-    showCamera && (
-        <CameraModal
-            onClose={() => setShowCamera(false)}
-            onCapture={handleCameraCapture}
-        />
-    )
-}
-{/* Group Call */ }
-{/* Group Call */ }
+            {/* Camera Modal */}
+            {
+                showCamera && (
+                    <CameraModal
+                        onClose={() => setShowCamera(false)}
+                        onCapture={handleCameraCapture}
+                    />
+                )
+            }
+            {/* Group Call */}
+            {/* Group Call */}
 
         </div >
     );
