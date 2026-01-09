@@ -308,7 +308,7 @@ const ChatWindow = ({
         if (!reply) return;
 
         try {
-            await onSendMessage(reply, 'text', null, isGhostMode);
+            await onSendMessage(reply, 'text', null, false);
             setSmartReplies([]); // Clear suggestions
             setNewMessage(''); // Clear input just in case
         } catch (err) {
