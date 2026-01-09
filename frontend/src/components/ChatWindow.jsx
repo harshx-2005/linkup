@@ -303,10 +303,17 @@ const ChatWindow = ({
         }
     };
 
-    const handleReplyClick = (reply) => {
-        setNewMessage(reply);
-        setSmartReplies([]); // Clear after selection
-        // Optional: Auto-focus
+    const handleReplyClick = async (reply) => {
+        // [Fixed] Send immediately on click ("One Tap")
+        if (!reply) return;
+
+        try {
+            await onSendMessage(reply, 'text', null, isGhostMode);
+            setSmartReplies([]); // Clear suggestions
+            setNewMessage(''); // Clear input just in case
+        } catch (err) {
+            console.error("Failed to send smart reply", err);
+        }
     };
 
     const handleSend = async (e) => {
