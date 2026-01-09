@@ -31,14 +31,8 @@
                     ]
                 },
                 "sendBody": true,
-                "bodyParameters": {
-                    "parameters": [
-                        {
-                            "name": "contents",
-                            "value": "={{ [{\n    \"role\": \"user\",\n    \"parts\": [{\n        \"text\": \"You are a helpful assistant. Generate 3 short, natural, concise responses for the user based on the chat history provided. \\n\\nContext:\\n\" + $json.body.chat + \"\\n\\nOutput ONLY a valid JSON array of strings, like this: [\\\"Yes, sure\\\", \\\"I will check\\\", \\\"Not right now\\\"]\\n\\nDo not include ```json blocks.\"\n    }]\n}] }}"
-                        }
-                    ]
-                },
+                "contentType": "json",
+                "body": "={{ JSON.stringify({\n  \"contents\": [{\n    \"role\": \"user\",\n    \"parts\": [{\n      \"text\": \"You are a helpful assistant. Generate 3 short, natural, concise responses for the user based on the chat history provided. \\n\\nContext:\\n\" + $json.body.chat + \"\\n\\nOutput ONLY a valid JSON array of strings, like this: [\\\"Yes, sure\\\", \\\"I will check\\\", \\\"Not right now\\\"]\\n\\nDo not include ```json blocks.\"\n    }]\n  }]\n}) }}",
                 "options": {}
             },
             "type": "n8n-nodes-base.httpRequest",

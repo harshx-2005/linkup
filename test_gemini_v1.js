@@ -1,18 +1,15 @@
 const https = require('https');
 
 const apiKey = 'AIzaSyCtfIsUUcyjsvTgweNWSG1HRd_laIPDKXk';
-const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+const url = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
 
 const data = JSON.stringify({
     "contents": [{
         "role": "user",
         "parts": [{
-            "text": "Hello"
+            "text": "You are a helpful assistant. Generate 3 short, natural, concise responses for the user based on the chat history provided. \n\nContext:\nUser: Hello\n\nOutput ONLY a valid JSON array of strings, like this: [\"Yes, sure\", \"I will check\", \"Not right now\"]\n\nDo not include ```json blocks."
         }]
-    }],
-    "generationConfig": {
-        "responseMimeType": "application/json"
-    }
+    }]
 });
 
 const options = {
