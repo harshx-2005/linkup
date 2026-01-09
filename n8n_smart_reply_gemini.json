@@ -43,6 +43,9 @@
                 },
                 "options": {}
             },
+            "retryOnFail": true,
+            "maxTries": 5,
+            "waitBetweenTries": 2000,
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 3,
             "position": [
