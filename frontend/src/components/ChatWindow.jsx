@@ -742,23 +742,25 @@ const ChatWindow = ({
                     {/* Actually, if I blocked them, I should probably see Unblock? Or backend handles. */}
 
                     <div className="p-4 bg-gray-800 border-t border-gray-700 relative">
-                        {/* [NEW] Smart Reply Chips */}
+                        {/* [MODIFIED] Smart Replies - WhatsApp Style Pills */}
                         {smartReplies.length > 0 && (
-                            <div className="absolute -top-12 left-4 right-4 flex gap-2 overflow-x-auto pb-2 scrollbar-none z-10 animate-in fade-in slide-in-from-bottom-2">
+                            <div className="flex flex-wrap gap-2 px-4 pb-3 animate-in slide-in-from-bottom-2">
                                 {smartReplies.map((reply, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => handleReplyClick(reply)}
-                                        className="whitespace-nowrap px-4 py-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-full text-sm text-gray-200 transition shadow-lg backdrop-blur-sm"
+                                        className="px-4 py-2 bg-[#2a3942] hover:bg-[#384a54] text-[#d1d7db] text-sm rounded-full border border-gray-600 transition-colors shadow-sm whitespace-nowrap"
                                     >
                                         {reply}
                                     </button>
                                 ))}
                                 <button
                                     onClick={() => setSmartReplies([])}
-                                    className="p-1.5 bg-gray-800/80 rounded-full text-gray-400 hover:text-white"
+                                    className="p-2 text-gray-400 hover:text-white"
                                 >
-                                    ✕
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                                    </svg>
                                 </button>
                             </div>
                         )}
