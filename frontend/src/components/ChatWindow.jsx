@@ -236,6 +236,12 @@ const ChatWindow = ({
             if (lastMsg && prevLastMsg && lastMsg.id !== prevLastMsg.id) {
                 messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
             }
+
+            // [NEW] Auto-generate Smart Replies for incoming messages
+            // Check if message is from OTHER user (not me)
+            if (lastMsg && String(lastMsg.senderId) !== String(currentUser.id)) {
+                handleSmartReply();
+            }
         }
         prevMessagesLengthRef.current = messages.length;
     }, [messages]);
