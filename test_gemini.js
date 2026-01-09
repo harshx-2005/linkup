@@ -11,7 +11,11 @@ https.get(url, (res) => {
             const models = JSON.parse(data);
             console.log("Available Models:");
             if (models.models) {
-                models.models.forEach(m => console.log(m.name));
+                models.models.forEach(m => {
+                    if (m.name.includes('1.5')) {
+                        console.log(m.name);
+                    }
+                });
             } else {
                 console.log(data); // Print error if structure is unexpected
             }
