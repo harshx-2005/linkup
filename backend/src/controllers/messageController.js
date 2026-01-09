@@ -98,29 +98,23 @@ const sendMessage = async (req, res) => {
             }
         }
 
-        // [NEW] AI Hook: Check for /imagine
-        if (content.startsWith('/imagine ')) {
-            const prompt = content.replace('/imagine ', '').trim();
-            const n8nUrl = process.env.N8N_WEBHOOK_URL;
+        // [NEW] AI Assistant Hook: Check for /ai or /ask
+        if (content.startsWith('/ai ') || content.startsWith('/ask ')) {
+            const prompt = content.replace(/^\/(ai|ask) /, '').trim();
+            const n8nUrl = process.env.N8N_AI_CHAT_WEBHOOK_URL; // Use distinct env var
 
             if (n8nUrl) {
-                // Trigger n8n asynchronously
-                // We do NOT save the /imagine command as a permanent message if we want to keep chat clean, 
-                // OR we save it so the user sees what they typed. Saving it is better UX.
-
-                console.log("Triggering n8n Webhook:", n8nUrl);
-                // Let's fire and forget the webhook
+                console.log("Triggering AI Chat Webhook:", n8nUrl);
+                // Fire and forget
                 try {
                     axios.post(n8nUrl, {
                         prompt,
                         conversationId,
-                        userId: senderId
-                    }).catch(err => console.error("n8n Webhook Error:", err.message));
+                        senderId // Pass sender ID so bot knows who asked
+                    }).catch(err => console.error("n8n AI Webhook Error:", err.message));
                 } catch (e) {
                     console.error("n8n Sync Error", e);
                 }
-
-                // Continue to save the user's command as a normal text message
             }
         }
 
@@ -192,6 +186,81 @@ const sendMessage = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// [NEW] Smart Reply Generator
+const getSmartReplies = async (req, res) => {
+    try {
+        const { conversationId } = req.body; // or params
+        const userId = req.user.id;
+
+        // 1. Fetch recent context (Last 10 messages)
+        const messages = await Message.findAll({
+            where: { conversationId },
+            order: [['createdAt', 'DESC']],
+            limit: 10,
+            include: [{ model: User, attributes: ['name'] }]
+        });
+
+        // 2. Format context for AI
+        // Reverse to chronological order (Oldest -> Newest)
+        const context = messages.reverse().map(m => {
+            const senderName = m.senderId === userId ? 'Me' : (m.User?.name || 'Partner');
+            return `${senderName}: ${m.content || '[Media]'}`;
+        }).join('\n');
+
+        if (!context) return res.json({ replies: ["Hi!", "Hello", "How are you?"] });
+
+        // 3. Call n8n Webhook
+        const n8nUrl = process.env.N8N_SMART_REPLY_WEBHOOK_URL;
+        if (!n8nUrl) {
+            console.warn("Smart Reply: Missing N8N_SMART_REPLY_WEBHOOK_URL");
+            return res.json({ replies: ["Thumbs up 👍", "Sounds good", "Okay"] });
+        }
+
+        const response = await axios.post(n8nUrl, {
+            chat: context,
+            prompt: "Based on the chat history above, suggest 3 short, separate, natural responses for 'Me'. Output detailed JSON array: ['Reply1', 'Reply2', 'Reply3']."
+        });
+
+        // 4. Handle AI Response
+        // Expecting n8n to return: { output: ["msg1", "msg2", "msg3"] } or just the array
+        let suggestions = [];
+
+        // n8n might return various structures depending on the Agent node output
+        // We'll trust the AI Agent sends back valid JSON string or object
+        if (response.data && Array.isArray(response.data)) {
+            suggestions = response.data;
+        } else if (response.data && response.data.output) {
+            // If AI returns a string, try to parse it
+            if (typeof response.data.output === 'string') {
+                // Try to remove markdown code blocks if any
+                const clean = response.data.output.replace(/```json/g, '').replace(/```/g, '').trim();
+                try {
+                    suggestions = JSON.parse(clean);
+                } catch (e) {
+                    suggestions = [response.data.output.substring(0, 20)]; // Fallback
+                }
+            } else if (Array.isArray(response.data.output)) {
+                suggestions = response.data.output;
+            }
+        }
+
+        // Fallback if AI fails
+        if (!suggestions || suggestions.length === 0) {
+            suggestions = ["Yes", "No", "I'm not sure"];
+        }
+
+        // Limit to 3 and ensure strings
+        const finalReplies = suggestions.slice(0, 3).map(String);
+
+        res.json({ replies: finalReplies });
+
+    } catch (error) {
+        console.error("Smart Reply Error:", error.message);
+        // Fallback on error
+        res.json({ replies: ["👍", "Okay", "Talk later"] });
     }
 };
 
@@ -341,4 +410,5 @@ module.exports = {
     markMessagesAsDelivered,
     deleteMessage,
     editMessage,
+    getSmartReplies
 };
