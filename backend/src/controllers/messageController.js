@@ -98,10 +98,16 @@ const sendMessage = async (req, res) => {
             }
         }
 
-        // [NEW] AI Assistant Hook: Check for /ai or /ask
-        if (content.startsWith('/ai ') || content.startsWith('/ask ')) {
-            const prompt = content.replace(/^\/(ai|ask) /, '').trim();
-            const n8nUrl = process.env.N8N_AI_CHAT_WEBHOOK_URL; // Use distinct env var
+        // [NEW] AI Assistant Hook: Check for /ai or /ask or DIRECT MESSAGE TO AI
+        const receiver = await User.findByPk(req.body.receiverId || (await ConversationMember.findOne({ where: { conversationId, userId: { [Op.ne]: senderId } } }))?.userId);
+
+        // Check if Recipient is the Bot
+        const isDirectToBot = receiver && receiver.email === 'ai@linkup.bot';
+
+        if (content.startsWith('/ai ') || content.startsWith('/ask ') || isDirectToBot) {
+            const prompt = isDirectToBot ? content : content.replace(/^\/(ai|ask) /, '').trim();
+            // Use NEW Meta AI Webhook for DMs, or fallback to old one
+            const n8nUrl = isDirectToBot ? process.env.N8N_META_AI_WEBHOOK_URL : process.env.N8N_AI_CHAT_WEBHOOK_URL;
 
             if (n8nUrl) {
                 console.log("Triggering AI Chat Webhook:", n8nUrl);

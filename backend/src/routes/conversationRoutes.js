@@ -11,11 +11,13 @@ const {
     clearConversation,
     updateGroupInfo,
     promoteAdmin,
-    dismissAdmin
+    createOrGetAiConversation
 } = require('../controllers/conversationController');
 const verifyToken = require('../middlewares/authMiddleware');
 
 const router = express.Router();
+
+router.post('/ai', verifyToken, createOrGetAiConversation); // [NEW] Meta AI Route
 
 router.get('/', verifyToken, getConversations);
 router.post('/private', verifyToken, createPrivateConversation);
