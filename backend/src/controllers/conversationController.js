@@ -621,6 +621,107 @@ const dismissAdmin = async (req, res) => {
     }
 };
 
+const createOrGetAiConversation = async (req, res) => {
+    try {
+        const currentUserId = req.user.id;
+        const AI_EMAIL = 'ai@linkup.bot';
+
+        // 1. Find or Create AI User
+        let [aiUser] = await User.findOrCreate({
+            where: { email: AI_EMAIL },
+            defaults: {
+                name: 'Meta AI',
+                password: 'ai_reserved_password_do_not_login', // Dummy password
+                email: AI_EMAIL,
+                avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Anonymous_emblem.svg/1200px-Anonymous_emblem.svg.png', // Placeholder, functionality first
+                status: 'online',
+                role: 'bot' // Determine if 'bot' role exists in enum, otherwise 'member'
+            }
+        });
+
+        // Ensure role is member/admin if 'bot' is not valid enum, or rely on defaults. 
+        // Assuming default schema, simple user is fine. 
+        // We'll update the avatar to something nicer later.
+
+        // 2. Find existing private chat
+        const memberships = await ConversationMember.findAll({ where: { userId: currentUserId } });
+        const userConvIds = memberships.map(m => m.conversationId);
+
+        const commonConv = await ConversationMember.findOne({
+            where: {
+                userId: aiUser.id,
+                conversationId: { [Op.in]: userConvIds }
+            },
+            include: [{
+                model: Conversation,
+                where: { isGroup: false }
+            }]
+        });
+
+        if (commonConv) {
+            const conversation = await Conversation.findByPk(commonConv.conversationId, {
+                include: [{
+                    model: User,
+                    attributes: ['id', 'name', 'avatar', 'status'],
+                    through: { attributes: [] }
+                }]
+            });
+
+            const formattedConv = {
+                id: conversation.id,
+                name: 'Meta AI', // Force name
+                avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Meta_Platforms_Inc._logo.svg/1200px-Meta_Platforms_Inc._logo.svg.png', // Meta Logo
+                isGroup: false,
+                lastMessage: null, // Let frontend fetch
+                lastMessageTime: conversation.createdAt,
+                otherUserId: aiUser.id,
+                status: 'online',
+                isAiChat: true // Flag for frontend
+            };
+            return res.json(formattedConv);
+        }
+
+        // 3. Create New Conversation
+        const conversation = await Conversation.create({
+            isGroup: false,
+            createdBy: currentUserId,
+            status: 'accepted' // Auto-accept
+        });
+
+        await ConversationMember.bulkCreate([
+            { conversationId: conversation.id, userId: currentUserId },
+            { conversationId: conversation.id, userId: aiUser.id }
+        ]);
+
+        // 4. Return formatted
+        const formattedConv = {
+            id: conversation.id,
+            name: 'Meta AI',
+            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Meta_Platforms_Inc._logo.svg/1200px-Meta_Platforms_Inc._logo.svg.png',
+            isGroup: false,
+            lastMessage: "Hi! I'm Meta AI. Ask me anything.",
+            lastMessageTime: new Date(),
+            otherUserId: aiUser.id,
+            status: 'online',
+            isAiChat: true
+        };
+
+        // Insert Welcome Message
+        await Message.create({
+            conversationId: conversation.id,
+            senderId: aiUser.id,
+            content: "Hi! I'm Meta AI. Ask me anything.",
+            messageType: 'text'
+        });
+
+        res.status(201).json(formattedConv);
+
+    } catch (error) {
+        console.error("AI Chat Error:", error);
+        res.status(500).json({ message: "Failed to initialize AI Chat" });
+    }
+};
+
 module.exports = {
     getConversations,
     createPrivateConversation,
@@ -633,5 +734,6 @@ module.exports = {
     clearConversation,
     updateGroupInfo,
     promoteAdmin,
-    dismissAdmin
+    dismissAdmin,
+    createOrGetAiConversation // Export
 };
