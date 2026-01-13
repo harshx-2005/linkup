@@ -23,3 +23,6 @@ Allowed Origins: [
   'http://localhost:3000'
 ]
 Database connected successfully.
+Database synced.
+Database synced.
+Server running on port 5001
