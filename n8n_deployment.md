@@ -1,67 +1,83 @@
-# Deploying n8n on Render (Free) with PostgreSQL
+# Option 1: Deploy on Render (Free Cloud) ☁️
 
-**Update:** The latest version of n8n has removed support for MySQL. We must use **PostgreSQL** instead. Render provides a free PostgreSQL database that is perfect for this.
+**Note:** Railway is no longer free for n8n. Render is the best free cloud option, but it can be slow (512MB RAM).
 
-## Step 1: Create a Free PostgreSQL Database on Render
-1.  Go to [Render Dashboard](https://dashboard.render.com/).
-2.  Click **New +** -> **PostgreSQL**.
-3.  **Name**: `linkup-n8n-db`
-4.  **Region**: Same as your backend (e.g., Oregon).
-5.  **Instance Type**: Free.
-6.  Click **Create Database**.
-7.  **Wait** for it to become "Available".
-8.  **Copy** the following "Internal Connection Details" (or keep the tab open):
-    *   `Hostname`
-    *   `Port`
-    *   `Database`
-    *   `Username`
-    *   `Password`
+## Step 1: Create Database
+1.  **Dashboard** -> **New +** -> **PostgreSQL**.
+2.  **Name**: `linkup-n8n-db`
+3.  **Plan**: **Free**
+4.  **Copy** the "Internal Connection Details" (Host, User, Pass, DB).
 
-## Step 2: Create n8n Web Service
-1.  Click **New +** -> **Web Service**.
-2.  Select **"Deploy an existing image from a registry"**.
-3.  Enter Image URL: `docker.io/n8nio/n8n:latest`
-4.  Click **Next**.
+## Step 2: Create Web Service
+1.  **Dashboard** -> **New +** -> **Web Service**.
+2.  **Source**: "Deploy an existing image from a registry".
+3.  **Image URL**: `docker.io/n8nio/n8n:latest`
+4.  **Plan**: **Free**
+5.  **Environment Variables** (Critical!):
 
-## Step 3: Configure Service
-*   **Name**: `linkup-n8n`
-*   **Region**: Same as before.
-*   **Instance Type**: Free.
-*   **Environment Variables** (Add these):
+| Key | Value |
+| :--- | :--- |
+| `N8N_PORT` | `5678` |
+| `PORT` | `5678` |
+| `WEBHOOK_URL` | `https://your-n8n-name.onrender.com/` |
+| `DB_TYPE` | `postgresdb` |
+| `DB_POSTGRESDB_HOST` | *(from Step 1)* |
+| `DB_POSTGRESDB_PORT` | `5432` |
+| `DB_POSTGRESDB_DATABASE`| *(from Step 1)* |
+| `DB_POSTGRESDB_USER` | *(from Step 1)* |
+| `DB_POSTGRESDB_PASSWORD`| *(from Step 1)* |
+| `N8N_ENCRYPTION_KEY` | `random-string-here` |
 
-| Key | Value | Description |
-| :--- | :--- | :--- |
-| `N8N_PORT` | `5678` | Default port |
-| `WEBHOOK_URL` | `https://linkup-n8n.onrender.com/` | Update after deploy |
-| `DB_TYPE` | `postgresdb` | **Changed from mysqldb** |
-| `DB_POSTGRESDB_HOST` | *(Paste Hostname)* | From Step 1 |
-| `DB_POSTGRESDB_PORT` | `5432` | From Step 1 |
-| `DB_POSTGRESDB_DATABASE`| *(Paste Database)* | From Step 1 |
-| `DB_POSTGRESDB_USER` | *(Paste Username)* | From Step 1 |
-| `DB_POSTGRESDB_PASSWORD`| *(Paste Password)* | From Step 1 |
-| `N8N_ENCRYPTION_KEY` | *(Random String)* | e.g. `s8d7f9s8d7f9` - **SAVE THIS!** |
-| `N8N_BASIC_AUTH_ACTIVE`| `true` | Security |
-| `N8N_BASIC_AUTH_USER` | `admin` | Your login |
-| `N8N_BASIC_AUTH_PASSWORD`| `password123` | Your password |
+6.  **Deploy**. Wait 5-10m.
 
-## Step 4: Deploy & Finalize
-1.  Click **Create Web Service**.
-2.  Wait for deploy. It should start successfully now.
-3.  Once live:
-    *   Copy the URL.
-    *   Go to **Environment** tab -> Update `WEBHOOK_URL`.
-    *   Save & Restart.
+---
 
-## Step 5: Update Chat Backend
-1.  Go to your **Chat App Backend** service on Render.
-2.  Update `N8N_WEBHOOK_URL` to the new address:
-    `https://linkup-n8n.onrender.com/webhook/imagine`
-3.  **Redeploy** the backend.
+# Option 2: Cloudflare Tunnel (Recommended for Local) 🚇
 
-## Step 6: Import Workflow
-1.  Open n8n in your browser.
-2.  Import your `ai_image_workflow.json` manually (or copy the code again).
-3.  Activate it.
-4.  Don't forget to **click "Production" / "Active"** toggle.
+Cloudflare Tunnel is free, secure, and gives you a stable URL (unlike localtunnel which crashes).
 
-You are now fully running on the cloud! ☁️
+# Option 2: Cloudflare Tunnel (Recommended) 🚇
+
+You are right! `npx n8n --tunnel` tries to do this automatically, but often fails (as seen in your logs). We will run them separately for stability.
+
+## 1. Run n8n (Terminal 1)
+Open PowerShell and run:
+`npx n8n`
+*(Keep this window OPEN. It runs the server on port 5678).*
+
+## 2. Start Cloudflare Tunnel (Terminal 2)
+1.  **Download**: [Cloudflare Windows .exe (amd64)](https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe)
+2.  **Move**: Move the downloaded file to a folder (e.g., `Downloads` or `C:\n8n`).
+3.  **Rename**: Rename it to `cloudflared.exe`.
+4.  **Run**:
+    Open a **NEW** PowerShell window.
+    `cd` to that folder.
+    Run this command (note the `.\`):
+    ```powershell
+    .\cloudflared.exe tunnel --url http://localhost:5678
+    ```
+
+## 3. Get Your URL
+
+## 3. Get Your URL
+Terminal will show limits and a URL like:
+`https://random-name-here.trycloudflare.com`
+
+**Copy this URL.** This is your public link to n8n!
+
+## 4. Update Backend
+1.  Go to **Render Dashboard** -> **Chat App Backend**.
+2.  **Environment Variables**:
+    *   Update `N8N_SMART_REPLY_WEBHOOK_URL` to:
+        `https://your-cloudflare-url.trycloudflare.com/webhook/smart-replies`
+    *   Update `N8N_META_AI_WEBHOOK_URL` to:
+        `https://your-cloudflare-url.trycloudflare.com/webhook/meta-ai-chat`
+3.  **Save**.
+
+**Benefits:**
+*   **Persistent**: URL stays typically as long as the window is open.
+*   **Secure**: traffic is encrypted.
+*   **Free**: $0.
+
+**Note:** You must keep the `cloudflared` terminal window OPEN for the app to work.
+

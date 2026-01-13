@@ -1,4 +1,3 @@
-const express = require('express');
 const {
     getConversations,
     createPrivateConversation,
@@ -11,6 +10,7 @@ const {
     clearConversation,
     updateGroupInfo,
     promoteAdmin,
+    dismissAdmin,
     createOrGetAiConversation
 } = require('../controllers/conversationController');
 const verifyToken = require('../middlewares/authMiddleware');
