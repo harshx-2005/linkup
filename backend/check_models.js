@@ -2,7 +2,7 @@ const axios = require('axios');
 require('dotenv').config({ path: 'e:/chatapp/backend/.env' });
 const fs = require('fs');
 
-const GEMINI_API_KEY = "AIzaSyB9PCw86qmhskrZLkeE-uyDMohiengeXKU";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const checkModels = async () => {
     if (!GEMINI_API_KEY) {
