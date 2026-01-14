@@ -90,7 +90,10 @@ const getAiResponse = async (userPrompt, conversationId, senderName) => {
             include: [{ association: 'User', attributes: ['name'] }]
         });
 
-        const conversationHistory = history.reverse().map(m => `${m.User?.name || 'User'}: ${m.content}`).join('\n');
+        const conversationHistory = history.reverse()
+            .filter(m => !m.content.includes("Check Server Logs") && !m.content.includes("I'm having trouble"))
+            .map(m => `${m.User?.name || 'User'}: ${m.content}`)
+            .join('\n');
 
         const systemInstruction = `You are LinkUp AI, a helpful and friendly assistant inside the LinkUp chat app.
         You are currently chatting with ${senderName}.
