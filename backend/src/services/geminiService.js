@@ -5,13 +5,11 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // List of models to try in order of preference
 const MODELS = [
-    'gemini-2.5-flash', // User requested exact name
-    'gemini-2.0-flash-exp',
-    'gemini-1.5-flash',
-    'gemini-1.5-flash-8b', // New lightweight model
-    'gemini-1.5-flash-002', // Updated production flash
-    'gemini-1.5-pro',
-    'gemini-pro'
+    'gemini-2.5-flash',      // Available
+    'gemini-2.0-flash',      // Available
+    'gemini-flash-latest',   // Available (Flash 1.5 alias)
+    'gemini-2.5-pro',        // Available
+    'gemini-pro-latest'      // Available
 ];
 
 // Helper to sanitize JSON
