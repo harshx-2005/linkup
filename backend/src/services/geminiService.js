@@ -5,11 +5,11 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // List of models to try in order of preference
 const MODELS = [
+    'gemini-2.0-flash-exp', // User requested newer version
     'gemini-1.5-flash',
-    'gemini-1.5-flash-001',
     'gemini-1.5-flash-latest',
-    'gemini-pro',
-    'gemini-1.0-pro'
+    'gemini-1.5-pro',
+    'gemini-pro'
 ];
 
 // Helper to sanitize JSON
