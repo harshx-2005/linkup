@@ -186,7 +186,7 @@ const sendMessage = async (req, res) => {
 
                             const io = getIO();
                             if (io) {
-                                io.to(String(conversationId)).emit('newMessage', fullBotMsg);
+                                io.to(String(conversationId)).emit('receive_message', fullBotMsg);
                                 console.log(`✅ [MessageController] Emitted Bot Reply to Room: ${conversationId}`);
                             } else {
                                 console.error("❌ [MessageController] IO Object not found!");
