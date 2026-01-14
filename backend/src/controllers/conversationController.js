@@ -627,21 +627,18 @@ const createOrGetAiConversation = async (req, res) => {
         const AI_EMAIL = 'ai@linkup.bot';
 
         // 1. Find or Create AI User
+        // [Fix] Removed 'bot' role as it caused validation error (ENUM is user/admin)
         let [aiUser] = await User.findOrCreate({
             where: { email: AI_EMAIL },
             defaults: {
-                name: 'Meta AI',
+                name: 'LinkUp AI',
                 password: 'ai_reserved_password_do_not_login', // Dummy password
                 email: AI_EMAIL,
-                avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Anonymous_emblem.svg/1200px-Anonymous_emblem.svg.png', // Placeholder, functionality first
+                avatar: 'https://cdn-icons-png.flaticon.com/512/4712/4712027.png', // Generic Robot Icon
                 status: 'online',
-                role: 'bot' // Determine if 'bot' role exists in enum, otherwise 'member'
+                role: 'user'
             }
         });
-
-        // Ensure role is member/admin if 'bot' is not valid enum, or rely on defaults. 
-        // Assuming default schema, simple user is fine. 
-        // We'll update the avatar to something nicer later.
 
         // 2. Find existing private chat
         const memberships = await ConversationMember.findAll({ where: { userId: currentUserId } });
@@ -669,14 +666,14 @@ const createOrGetAiConversation = async (req, res) => {
 
             const formattedConv = {
                 id: conversation.id,
-                name: 'Meta AI', // Force name
-                avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Meta_Platforms_Inc._logo.svg/1200px-Meta_Platforms_Inc._logo.svg.png', // Meta Logo
+                name: 'LinkUp AI', // Force name
+                avatar: 'https://cdn-icons-png.flaticon.com/512/4712/4712027.png',
                 isGroup: false,
-                lastMessage: null, // Let frontend fetch
+                lastMessage: null,
                 lastMessageTime: conversation.createdAt,
                 otherUserId: aiUser.id,
                 status: 'online',
-                isAiChat: true // Flag for frontend
+                isAiChat: true
             };
             return res.json(formattedConv);
         }
@@ -685,7 +682,7 @@ const createOrGetAiConversation = async (req, res) => {
         const conversation = await Conversation.create({
             isGroup: false,
             createdBy: currentUserId,
-            status: 'accepted' // Auto-accept
+            status: 'accepted'
         });
 
         await ConversationMember.bulkCreate([
@@ -696,10 +693,10 @@ const createOrGetAiConversation = async (req, res) => {
         // 4. Return formatted
         const formattedConv = {
             id: conversation.id,
-            name: 'Meta AI',
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Meta_Platforms_Inc._logo.svg/1200px-Meta_Platforms_Inc._logo.svg.png',
+            name: 'LinkUp AI',
+            avatar: 'https://cdn-icons-png.flaticon.com/512/4712/4712027.png',
             isGroup: false,
-            lastMessage: "Hi! I'm Meta AI. Ask me anything.",
+            lastMessage: "Hi! I'm LinkUp AI. Ask me anything.",
             lastMessageTime: new Date(),
             otherUserId: aiUser.id,
             status: 'online',
@@ -710,7 +707,7 @@ const createOrGetAiConversation = async (req, res) => {
         await Message.create({
             conversationId: conversation.id,
             senderId: aiUser.id,
-            content: "Hi! I'm Meta AI. Ask me anything.",
+            content: "Hi! I'm LinkUp AI. Ask me anything.",
             messageType: 'text'
         });
 
