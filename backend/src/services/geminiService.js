@@ -88,16 +88,27 @@ const getAiResponse = async (userPrompt, conversationId, senderName) => {
             include: [{ association: 'User', attributes: ['name'] }]
         });
 
+        // Filter out ANY message that looks like an error report from the bot
         const conversationHistory = history.reverse()
-            .filter(m => !m.content.includes("Check Server Logs") && !m.content.includes("I'm having trouble"))
+            .filter(m => {
+                const text = m.content.toLowerCase();
+                return !text.includes("check server logs") &&
+                    !text.includes("trouble connecting") &&
+                    !text.includes("technical difficulties") &&
+                    !text.includes("apologies");
+            })
             .map(m => `${m.User?.name || 'User'}: ${m.content}`)
             .join('\n');
+
+        console.log("📝 [GeminiService] Context Sent to AI:\n", conversationHistory);
 
         const systemInstruction = `You are LinkUp AI, a helpful and friendly assistant inside the LinkUp chat app.
         You are currently chatting with ${senderName}.
         
         Recent Conversation History:
         ${conversationHistory}
+        
+        IMPORTANT: Use the above history for context, but IGNORE any previous technical error messages or apologies from "LinkUp AI". You are fully functional now.
         
         Answer the user's latest message: "${userPrompt}"
         Keep your answers concise, helpful, and friendly.`;
