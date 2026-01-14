@@ -2,6 +2,7 @@ const axios = require('axios');
 const { Message } = require('../models');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// Use 1.5-flash for stability
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 // Helper to sanitize JSON
@@ -11,6 +12,12 @@ const cleanJson = (text) => {
 
 const generateSmartReplies = async (conversationContext) => {
     try {
+        console.log("⚡ [GeminiService] Generating Smart Replies...");
+        if (!GEMINI_API_KEY) {
+            console.error("❌ [GeminiService] Missing GEMINI_API_KEY");
+            return ["Check API Key", "Error", "System"];
+        }
+
         const prompt = `
         You are a smart reply assistant.
         Based on the following chat history, generate 3 short, natural, and casual replies for the last user ('Me').
@@ -25,44 +32,73 @@ const generateSmartReplies = async (conversationContext) => {
             generationConfig: { response_mime_type: "application/json" }
         });
 
-        const rawText = response.data.candidates[0].content.parts[0].text;
+        const rawText = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!rawText) {
+            console.error("❌ [GeminiService] Empty response from API");
+            return ["👍", "Okay", "Talk later"];
+        }
+
+        console.log("✅ [GeminiService] Smart Reply Response:", rawText);
+
         const replies = JSON.parse(cleanJson(rawText));
 
-        return Array.isArray(replies) ? replies.slice(0, 3) : ["👍", "Okay", "Talk later"]; // Fallback
+        return Array.isArray(replies) ? replies.slice(0, 3) : ["👍", "Okay", "Talk later"];
     } catch (error) {
-        console.error("Gemini Smart Reply Error:", error.response?.data || error.message);
+        console.error("❌ [GeminiService] Smart Reply Error:", error.response?.data || error.message);
         return ["👍", "Okay", "Talk later"];
     }
 };
 
 const getAiResponse = async (userPrompt, conversationId, senderName) => {
     try {
+        console.log(`🤖 [GeminiService] Chat Request from ${senderName}: ${userPrompt}`);
+
+        if (!GEMINI_API_KEY) {
+            console.error("❌ [GeminiService] Missing GEMINI_API_KEY");
+            return "System Error: The Server is missing the GEMINI_API_KEY. Please check Render Environment Variables.";
+        }
+
         // Fetch last 10 messages for context
-        // This makes the bot aware of the conversation flow
         const history = await Message.findAll({
             where: { conversationId },
             order: [['createdAt', 'DESC']],
             limit: 10,
             attributes: ['content', 'senderId', 'createdAt'],
-            include: [{ association: 'User', attributes: ['name'] }] // Assuming alias exists
+            include: [{ association: 'User', attributes: ['name'] }]
         });
 
-        // Format history
-        // Note: We need to handle this carefully to distinguish User vs Bot.
-        // For now, let's just stick to a simple instruction with the new prompt.
+        // Simple context formatting
+        const conversationHistory = history.reverse().map(m => `${m.User?.name || 'User'}: ${m.content}`).join('\n');
 
-        const systemInstruction = `You are Meta AI, a helpful and friendly assistant inside the LinkUp chat app.
-        You are chatting with ${senderName}. Keep your answers concise and helpful.`;
+        const systemInstruction = `You are LinkUp AI, a helpful and friendly assistant inside the LinkUp chat app.
+        You are currently chatting with ${senderName}.
+        
+        Recent Conversation History:
+        ${conversationHistory}
+        
+        Answer the user's latest message: "${userPrompt}"
+        Keep your answers concise, helpful, and friendly.`;
 
+        // 1.5 Flash supports system instructions but putting everything in 'contents' is often more robust for simple use cases
+        // Let's use the 'parts' text approach
         const response = await axios.post(API_URL, {
-            contents: [{ parts: [{ text: userPrompt }] }],
-            system_instruction: { parts: [{ text: systemInstruction }] } // Gemini 1.5+ supports system instructions
+            contents: [{ parts: [{ text: systemInstruction }] }]
         });
 
-        return response.data.candidates[0].content.parts[0].text;
+        const reply = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!reply) {
+            console.error("❌ [GeminiService] Empty response from Chat API");
+            return "I'm having trouble thinking right now. 😵";
+        }
+
+        console.log("✅ [GeminiService] Bot Reply:", reply);
+        return reply;
+
     } catch (error) {
-        console.error("Gemini Chat Error:", error.response?.data || error.message);
-        return "I'm having trouble connecting right now. Please try again later. 🤖";
+        console.error("❌ [GeminiService] Chat Error:", error.response?.data || error.message);
+        return "I'm having trouble connecting to my brain right now. 🤯 (Check Server Logs)";
     }
 };
 
