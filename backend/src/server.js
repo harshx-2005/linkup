@@ -23,18 +23,20 @@ app.use(cors({
     origin: (origin, callback) => {
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1 && !process.env.FRONTEND_URL) {
-            // If FRONTEND_URL not set, allow all (dev mode fallback)
-            return callback(null, true);
-        }
-        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+
+        if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         } else {
-            // Optional: Fail safe to allow for now during testing
-            return callback(null, true);
+            // For debugging/development, we might want to allow this but let's be explicit
+            console.log("Blocking CORS origin:", origin);
+            // FAIL SAFE: If it matches vercel app just in case of trailing slash or protocol mismatch
+            if (origin.includes('linkup-silk.vercel.app')) return callback(null, true);
+
+            return callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 app.use(express.json());
 

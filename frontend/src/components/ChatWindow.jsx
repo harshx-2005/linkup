@@ -89,6 +89,10 @@ const ChatWindow = ({
         }
         if (typingUser) return <span className="text-green-400 font-bold animate-pulse">Typing...</span>;
 
+        if (conversation.email === 'ai@linkup.bot' || conversation.name === 'LinkUp AI') {
+            return <span className="text-green-400 font-bold">Online</span>;
+        }
+
         if (conversation.otherUserId && onlineUsers?.has(String(conversation.otherUserId))) {
             return <span className="text-blue-400 font-medium">Online</span>;
         }
