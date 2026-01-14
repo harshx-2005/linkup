@@ -184,7 +184,13 @@ const sendMessage = async (req, res) => {
                                 include: [{ model: User, attributes: ['id', 'name', 'avatar'] }]
                             });
 
-                            io.to(String(conversationId)).emit('newMessage', fullBotMsg);
+                            const io = getIO();
+                            if (io) {
+                                io.to(String(conversationId)).emit('newMessage', fullBotMsg);
+                                console.log(`✅ [MessageController] Emitted Bot Reply to Room: ${conversationId}`);
+                            } else {
+                                console.error("❌ [MessageController] IO Object not found!");
+                            }
                         } catch (err) {
                             console.error("Failed to save Bot Message:", err);
                         }

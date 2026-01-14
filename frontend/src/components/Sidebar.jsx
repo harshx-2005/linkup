@@ -124,9 +124,13 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                                 )}
                             </div>
                             {/* Online Status Dot */}
-                            {!conv.isGroup && conv.otherUserId && onlineUsers?.has(String(conv.otherUserId)) && (
-                                <div className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-gray-900"></div>
-                            )}
+                            {(!conv.isGroup && (
+                                (conv.otherUserId && onlineUsers?.has(String(conv.otherUserId))) ||
+                                (conv.email === 'ai@linkup.bot') ||
+                                (conv.name === 'LinkUp AI')
+                            )) && (
+                                    <div className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-gray-900"></div>
+                                )}
                         </div>
 
                         <div className="overflow-hidden flex-1 min-w-0">
