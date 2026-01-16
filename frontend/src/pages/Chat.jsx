@@ -516,13 +516,13 @@ const Chat = () => {
         const pc = new RTCPeerConnection({
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:global.stun.twilio.com:3478' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
                 { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' },
-                { urls: 'stun:stun.services.mozilla.com' }
-            ]
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ],
+            bundlePolicy: 'max-bundle',
+            icecandidatePoolSize: 10
         });
 
         pc.onicecandidate = (event) => {
@@ -537,8 +537,15 @@ const Chat = () => {
         pc.ontrack = (event) => {
             console.log("Remote stream received", event.streams);
             if (event.streams && event.streams[0]) {
-                console.log("Setting remote stream to state", event.streams[0].id);
-                setActiveCall(prev => ({ ...prev, remoteStream: event.streams[0] }));
+                const stream = event.streams[0];
+                setActiveCall(prev => {
+                    // Prevent redundant updates if stream ID is same
+                    if (prev.remoteStream && prev.remoteStream.id === stream.id) {
+                        return prev;
+                    }
+                    console.log("Setting new remote stream to state", stream.id);
+                    return { ...prev, remoteStream: stream };
+                });
             } else {
                 console.warn("Received track event but no stream found", event);
             }
