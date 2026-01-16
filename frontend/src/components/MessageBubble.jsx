@@ -134,187 +134,175 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                 </div>
             )}
 
+            {/* Bubble Container */}
             <div
-                className={`max-w-xs md:max-w-md px-5 py-3 shadow-sm relative group/bubble transition-all duration-200 ${isOwn
-                    ? 'bg-gradient-to-tr from-[#3b82f6] to-[#8b5cf6] text-white rounded-[1.5rem] rounded-tr-sm shadow-blue-500/20'
-                    : 'bg-[#2a2a2e]/80 backdrop-blur-sm border border-white/5 text-gray-100 rounded-[1.5rem] rounded-tl-sm'
-                    } ${message.deletedForEveryone ? 'italic text-gray-500 border border-gray-700/50 bg-transparent shadow-none' : ''}`}
+                className={`max-w-xs md:max-w-md shadow-sm relative group/bubble transition-all duration-200 flex flex-col 
+                    ${isOwn
+                        ? 'bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 text-white rounded-[1.25rem] rounded-tr-sm shadow-indigo-500/20 shadow-lg'
+                        : 'bg-black/40 backdrop-blur-md border border-white/10 text-gray-100 rounded-[1.25rem] rounded-tl-sm shadow-lg'
+                    } ${message.deletedForEveryone ? 'italic text-gray-400 border border-gray-600/30 bg-white/5 shadow-none px-4 py-2' : ''}`}
             >
                 {!isOwn && isGroup && message.User?.name && !message.deletedForEveryone && (
-                    <p className="text-xs text-blue-400 mb-1 font-bold tracking-wide">{message.User.name}</p>
+                    <p className="text-xs text-blue-400 font-bold tracking-wide px-3 pt-2 pb-0.5 ml-1">{message.User.name}</p>
                 )}
 
                 {isEditing ? (
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 p-3">
                         <input
                             type="text"
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
-                            className="text-black p-1 rounded text-sm"
+                            className="text-black p-2 rounded-lg text-sm focus:outline-none"
                             autoFocus
                         />
                         <div className="flex gap-2 justify-end">
-                            <button onClick={() => setIsEditing(false)} className="text-xs text-gray-200">Cancel</button>
-                            <button onClick={handleSaveEdit} className="text-xs text-white font-bold">Save</button>
+                            <button onClick={() => setIsEditing(false)} className="text-xs text-gray-200 hover:text-white transition">Cancel</button>
+                            <button onClick={handleSaveEdit} className="text-xs text-white font-bold bg-white/20 px-2 py-1 rounded hover:bg-white/30 transition">Save</button>
                         </div>
                     </div>
                 ) : message.deletedForEveryone ? (
-                    <p className="italic">
+                    <p className="italic text-sm">
                         {message.content}
                     </p>
                 ) : (
                     <>
-                        {(message.messageType === 'text' || message.messageType === 'system') && (
-                            (() => {
-                                // Fallback: Check if it's a JSON call log that got saved as text OR system
-                                try {
-                                    const rawContent = message.content;
-                                    let parsed = null;
+                        {/* Media Section (Full Bleed) */}
+                        {message.attachmentUrl && (
+                            <div className={`overflow-hidden ${message.content ? 'rounded-t-[1.1rem] mb-0.5' : 'rounded-[1.1rem]'}`}>
+                                {message.messageType === 'image' && (
+                                    <img
+                                        src={message.attachmentUrl}
+                                        alt="attachment"
+                                        className="w-full h-auto max-h-[350px] object-cover cursor-pointer hover:opacity-95 transition bg-gray-900"
+                                        onClick={() => onImageClick && onImageClick(message.attachmentUrl)}
+                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x200?text=Image+Error'; }}
+                                    />
+                                )}
+                                {message.messageType === 'video' && (
+                                    <div className="w-full aspect-video bg-black relative">
+                                        <video
+                                            src={message.attachmentUrl}
+                                            controls
+                                            playsInline
+                                            preload="metadata"
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </div>
+                                )}
+                                {message.messageType === 'audio' && (
+                                    <div className="p-2">
+                                        <audio src={message.attachmentUrl} controls className="w-full h-10 rounded-lg custom-audio" />
+                                    </div>
+                                )}
+                                {message.messageType === 'file' && (
+                                    <div className="p-2">
+                                        <a
+                                            href={message.attachmentUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`flex items-center gap-3 p-3 rounded-xl transition group ${isOwn ? 'bg-white/10 hover:bg-white/20' : 'bg-[#3f3f46] hover:bg-[#52525b]'}`}
+                                        >
+                                            <div className="p-2.5 bg-white/10 rounded-lg text-white group-hover:bg-white/20 transition">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold truncate text-white leading-tight">
+                                                    {message.content.replace('File: ', '') || 'Document'}
+                                                </p>
+                                                <p className="text-[10px] text-gray-300 opacity-80 mt-0.5 font-medium uppercase tracking-wide">
+                                                    {message.attachmentUrl.split('.').pop().toUpperCase()} FILE
+                                                </p>
+                                            </div>
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-                                    if (message.messageType === 'system') {
-                                        try { parsed = JSON.parse(rawContent); } catch (e) { }
-                                    }
-
-                                    // Ultra-permissive check for text fallback
-                                    if (!parsed && rawContent && rawContent.includes('call_log') && rawContent.trim().startsWith('{')) {
-                                        const start = rawContent.indexOf('{');
-                                        const end = rawContent.lastIndexOf('}');
-                                        if (start !== -1 && end !== -1) {
-                                            const jsonCandidate = rawContent.substring(start, end + 1);
-                                            parsed = JSON.parse(jsonCandidate);
+                        {/* Text Content (Caption or Message) */}
+                        {/* 
+                            Logic: 
+                            1. If it's pure text, render it.
+                            2. If it's a file, we displayed name above, but if there's EXTRA text, show it.
+                            3. If it's image/video, display content as caption.
+                            4. If system/call_log, handle that.
+                         */}
+                        {((message.content && message.messageType !== 'file') || (message.content && message.messageType === 'file' && message.content !== 'File: ' + message.name)) && (
+                            <div className={`px-4 py-2 ${message.attachmentUrl ? 'pt-1' : ''} relative z-10 break-words text-[15px] leading-relaxed`}>
+                                {(message.messageType === 'text' || message.messageType === 'system' || message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio') && (
+                                    (() => {
+                                        let parsed = null;
+                                        // JSON System checks (Call logs)
+                                        if (message.messageType === 'system' || (message.content.startsWith('{') && message.content.includes('call_log'))) {
+                                            try { parsed = JSON.parse(message.content); } catch (e) { }
                                         }
-                                    }
 
-                                    if (parsed && parsed.type === 'call_log') {
-                                        const isMissed = parsed.status === 'missed' || parsed.status === 'declined';
-                                        const isIncoming = !isOwn;
-                                        const isVideo = parsed.isVideo;
+                                        if (parsed && parsed.type === 'call_log') {
+                                            const isMissed = parsed.status === 'missed' || parsed.status === 'declined';
+                                            const isIncoming = !isOwn;
+                                            const isVideo = parsed.isVideo;
+                                            return (
+                                                <div className="flex items-center gap-3 min-w-[180px] py-1">
+                                                    <div className={`p-2 rounded-full ${isMissed ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
+                                                        {isVideo ? (
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                                                        ) : (
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-sm">{isVideo ? 'Video Call' : 'Voice Call'}</p>
+                                                        <p className="text-xs opacity-70">{parsed.duration || (isMissed ? 'Missed' : 'Ended')}</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+
+                                        // Normal Text
+                                        if (message.messageType === 'system') return null; // Already handled above or fallback
 
                                         return (
-                                            <div className="flex items-center gap-3 min-w-[180px] py-1">
-                                                <div className={`p-2 rounded-full ${isMissed ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
-                                                    {isVideo ? (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                                                    ) : isMissed ? (
-                                                        // Missed Call
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 1l-6 6"></path><path d="M17 1l6 6"></path><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                                    ) : isIncoming ? (
-                                                        // Received (Incoming) - Phone with Arrow Down Left
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 22 16 22 10"></polyline><line x1="12" y1="12" x2="22" y2="16"></line><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                                    ) : (
-                                                        // Outgoing - Phone with Arrow Up Right
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 2 22 2 22 8"></polyline><line x1="12" y1="12" x2="22" y2="2"></line><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                                    )}
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className={`text-sm font-bold ${isMissed ? 'text-red-300' : 'text-green-300'}`}>
-                                                        {isMissed ? 'Missed Call' : (parsed.isVideo ? 'Video Call' : (isIncoming ? 'Incoming Call' : 'Outgoing Call'))}
-                                                    </span>
-                                                    {parsed.duration && (
-                                                        <span className="text-gray-300 text-xs">
-                                                            {parsed.duration}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
+                                            <span className="whitespace-pre-wrap">
+                                                {message.content.split(' ').map((word, index) => {
+                                                    if (word.startsWith('@')) {
+                                                        return <span key={index} className="bg-blue-500/20 text-blue-300 px-1 rounded font-medium">{word} </span>;
+                                                    }
+                                                    // Detect URLs
+                                                    if (word.match(/^https?:\/\//)) {
+                                                        return <a key={index} href={word} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline decoration-blue-300/50 break-all">{word} </a>;
+                                                    }
+                                                    return word + ' ';
+                                                })}
+                                            </span>
                                         );
-                                    }
-                                } catch (e) {
-                                    // Silent fail
-                                }
-
-                                if (message.messageType === 'system') return null; // Fallback
-
-                                return (
-                                    <p>
-                                        {message.content.split(' ').map((word, index) => {
-                                            if (word.startsWith('@')) {
-                                                return <span key={index} className="text-blue-300 font-bold">{word} </span>;
-                                            }
-                                            return word + ' ';
-                                        })}
-                                    </p>
-                                );
-                            })()
-                        )}
-
-                        {message.messageType === 'image' && (
-                            <img
-                                src={message.attachmentUrl}
-                                alt="attachment"
-                                className="max-w-full max-h-96 rounded-lg cursor-pointer hover:opacity-90 transition object-contain bg-gray-800"
-                                onClick={() => onImageClick && onImageClick(message.attachmentUrl)}
-                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/150?text=Image+Error'; }}
-                            />
-                        )}
-
-                        {message.messageType === 'video' && (
-                            <div className="w-full max-w-[320px] aspect-video rounded-xl overflow-hidden bg-gray-900 border border-gray-700/50 shadow-md relative">
-                                <video
-                                    src={message.attachmentUrl}
-                                    controls
-                                    playsInline
-                                    preload="auto"
-                                    className="w-full h-full object-contain bg-black"
-                                    onError={(e) => console.error("Video load error", e)}
-                                >
-                                    Your browser does not support the video tag.
-                                </video>
+                                    })()
+                                )}
                             </div>
-                        )}
-
-                        {message.messageType === 'audio' && (
-                            <div className="min-w-[260px] md:min-w-[300px]">
-                                <audio src={message.attachmentUrl} controls className="w-full h-10 rounded-lg" />
-                            </div>
-                        )}
-
-                        {message.messageType === 'file' && (
-                            <a
-                                href={message.attachmentUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-3 bg-gray-600/30 hover:bg-gray-600/50 border border-gray-500/30 rounded-lg p-3 transition group max-w-[280px]"
-                            >
-                                <div className="p-2 bg-gray-700/50 rounded-lg text-blue-400 group-hover:text-blue-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                                    </svg>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate text-white group-hover:text-blue-200">
-                                        {message.content.replace('File: ', '')}
-                                    </p>
-                                    <p className="text-xs text-gray-400">Click to download</p>
-                                </div>
-                                <div className="p-2 text-gray-400 group-hover:text-white">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                    </svg>
-                                </div>
-                            </a>
                         )}
                     </>
                 )}
 
-                <div className="flex items-center justify-end gap-1 mt-1">
-                    <span className="text-xs text-gray-300">
+                {/* Footer / Time / Status */}
+                <div className={`flex items-center justify-end px-3 pb-2 gap-1 ${message.attachmentUrl && !message.content ? 'absolute bottom-1 right-1 bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-sm' : 'mt-0.5'}`}>
+                    <span className={`text-[10px] uppercase font-medium tracking-wide ${message.attachmentUrl && !message.content ? 'text-white' : (isOwn ? 'text-blue-100/70' : 'text-gray-500')}`}>
                         {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     {isOwn && !message.deletedForEveryone && (
-                        <span className="text-xs ml-1 flex items-center">
+                        <span className="flex items-center">
                             {message.seenBy && message.seenBy.length > 0 ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-blue-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-3.5 h-3.5 ${message.attachmentUrl && !message.content ? 'text-blue-400' : 'text-sky-300'}`}>
                                     <path d="M18 6L7 17l-5-5" />
                                     <path d="M22 10l-7.5 7.5L13 16" />
                                 </svg>
                             ) : message.deliveredTo && message.deliveredTo.length > 0 ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-3.5 h-3.5 ${message.attachmentUrl && !message.content ? 'text-gray-300' : 'text-blue-200/60'}`}>
                                     <path d="M18 6L7 17l-5-5" />
                                     <path d="M22 10l-7.5 7.5L13 16" />
                                 </svg>
                             ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-3.5 h-3.5 ${message.attachmentUrl && !message.content ? 'text-gray-300' : 'text-blue-200/60'}`}>
                                     <path d="M20 6L9 17l-5-5" />
                                 </svg>
                             )}

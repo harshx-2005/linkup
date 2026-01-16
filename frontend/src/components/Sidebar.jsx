@@ -18,49 +18,35 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
     });
 
     return (
-        <div className="w-full h-full bg-[#101014]/95 backdrop-blur-2xl border-r border-[#2a2a2e] flex flex-col shadow-2xl relative overflow-hidden">
-            {/* Ambient Background Glow */}
-            <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="w-full h-full bg-transparent border-r border-white/5 flex flex-col relative z-20">
             {/* Header Area */}
-            <div className="p-5 bg-transparent border-b border-[#2a2a2e] shrink-0 z-10 relative">
-                <div className="flex justify-between items-center mb-5">
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                        Chats
-                    </h2>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setShowCreateChat(true)}
-                            className="bg-blue-600 hover:bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition hover:scale-105"
-                            title="New Conversation"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                <path fillRule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
-                            </svg>
-                        </button>
-
-                        {user?.role === 'admin' && (
-                            <Link to="/admin" className="text-gray-400 hover:text-purple-400 transition transform hover:scale-110" title="Admin Dashboard">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                                    <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.352-.272-2.636-.759-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-                                </svg>
-                            </Link>
-                        )}
-
-                        <Link to="/settings" className="relative group" title="Settings">
-                            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-gray-700 group-hover:border-blue-500 transition shadow-sm">
-                                {user?.avatar ? (
-                                    <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full bg-gray-700 flex items-center justify-center text-xs font-bold text-white">
-                                        {user?.name?.[0]?.toUpperCase() || '?'}
-                                    </div>
-                                )}
-                            </div>
-                        </Link>
-                    </div>
+            <div className="p-5 flex justify-between items-center bg-transparent backdrop-blur-xl sticky top-0 z-10">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
+                    LinkUp
+                </h1>
+                <div className="flex gap-2">
+                    <button onClick={() => { /* Placeholder for onOpenProfile */ }} className="p-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.29 1.52l.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </button>
+                    <button onClick={() => setShowCreateChat(true)} className="p-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div className="p-5 pt-0">
+                <div className="relative group">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                        type="text"
+                        placeholder="Search conversations..."
+                        className="w-full bg-[#1c1c1f] text-gray-200 placeholder-gray-600 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition text-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
 
-                {/* Meta AI Button */}
                 <button
                     onClick={async () => {
                         try {
@@ -77,28 +63,19 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                             console.error("Meta AI Error:", err);
                         }
                     }}
-                    className="w-full mb-3 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all animate-in fade-in slide-in-from-top-4"
+                    className={`mt-4 w-full p-3.5 rounded-xl flex items-center gap-4 transition-all duration-200 group border border-transparent ${selectedConversation?.id === 'ai-chat'
+                        ? 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-blue-500/30'
+                        : 'bg-black/20 hover:bg-black/30 border-white/5 hover:border-white/10'
+                        }`}
                 >
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                            <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813a3.75 3.75 0 002.576-2.576l.813-2.846A.75.75 0 019 4.5zM9 15a.75.75 0 01.75.75v1.5h1.5a.75.75 0 010 1.5h-1.5v1.5a.75.75 0 01-1.5 0v-1.5h-1.5a.75.75 0 010-1.5h1.5v-1.5A.75.75 0 019 15z" clipRule="evenodd" />
-                        </svg>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${selectedConversation?.id === 'ai-chat' ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white' : 'bg-[#27272a] text-blue-400 group-hover:bg-[#3f3f46]'}`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M12 22a2 2 0 0 1 2-2v-2a2 2 0 0 1-2-2 2 2 0 0 1-2 2v2a2 2 0 0 1 2 2z"></path><path d="M2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"></path><path d="M22 12a2 2 0 0 1-2-2h-2a2 2 0 0 1-2 2 2 2 0 0 1 2 2h2a2 2 0 0 1 2-2z"></path><rect x="8" y="8" width="8" height="8" rx="2"></rect></svg>
                     </div>
-                    LinkUp AI
+                    <div className="flex flex-col items-start">
+                        <span className={`font-bold text-sm ${selectedConversation?.id === 'ai-chat' ? 'text-white' : 'text-gray-200'}`}>LinkUp AI</span>
+                        <span className="text-[11px] text-blue-400/80 font-medium">Click to chat with AI</span>
+                    </div>
                 </button>
-
-                <div className="relative group">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 absolute left-3.5 top-3 text-gray-400 group-focus-within:text-blue-400 transition-colors">
-                        <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clipRule="evenodd" />
-                    </svg>
-                    <input
-                        type="text"
-                        placeholder="Search conversations..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 rounded-2xl bg-[#1c1c1f] text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 border border-transparent focus:border-blue-500/30 transition-all placeholder-gray-500 shadow-inner"
-                    />
-                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 p-2">
@@ -106,9 +83,9 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                     <div
                         key={conv.id}
                         onClick={() => onSelectConversation(conv)}
-                        className={`group p-3.5 rounded-2xl flex items-center cursor-pointer transition-all duration-200 border border-transparent backdrop-blur-sm ${selectedConversation?.id === conv.id
-                            ? 'bg-[#252529] border-[#3b82f6]/20 shadow-lg shadow-black/20'
-                            : 'hover:bg-white/5 hover:border-white/5 active:scale-[0.98]'
+                        className={`group p-3 mx-2 my-1 rounded-2xl flex items-center cursor-pointer transition-all duration-300 backdrop-blur-sm ${selectedConversation?.id === conv.id
+                            ? 'bg-white/10 shadow-lg border border-white/10'
+                            : 'hover:bg-white/5 border border-transparent'
                             }`}
                     >
                         <div className="relative mr-4 shrink-0">

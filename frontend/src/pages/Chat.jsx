@@ -1357,8 +1357,13 @@ const Chat = () => {
     }, [conversations]);
 
     return (
-        <div className="flex h-[100dvh] bg-gray-900 text-white overflow-hidden">
-            <div className={`flex flex-col border-r border-gray-700 bg-gray-800 h-full flex-shrink-0 ${selectedConversation ? 'hidden md:flex md:w-80' : 'w-full md:w-80'}`}>
+        <div className="flex h-screen premium-bg text-gray-100 overflow-hidden font-sans">
+            {/* Sidebar with Glass Effect */}
+            <div className={`
+                ${selectedConversation ? 'hidden md:flex' : 'flex'} 
+                w-full md:w-[380px] flex-shrink-0 flex-col z-20 h-full
+                border-r border-white/5 shadow-2xl backdrop-blur-3xl bg-black/40
+            `}>
                 <Sidebar
                     conversations={conversations}
                     onSelectConversation={handleSelectConversation}
@@ -1368,8 +1373,9 @@ const Chat = () => {
                 />
             </div>
 
+            {/* Chat Window Container */}
             {selectedConversation ? (
-                <div className="flex-1 flex flex-col w-full md:w-3/4 h-full">
+                <div className="flex-1 flex flex-col h-full relative z-10 glass-panel">
                     <ChatWindow
                         conversation={selectedConversation}
                         messages={messages}
@@ -1398,8 +1404,11 @@ const Chat = () => {
                     />
                 </div>
             ) : (
-                <div className="hidden md:flex flex-1 items-center justify-center flex-col bg-gray-900 border-l border-gray-700">
-                    <div className="text-gray-500 text-lg">Select a conversation to start chatting</div>
+                <div className="hidden md:flex flex-1 items-center justify-center flex-col bg-black/20 backdrop-blur-md border-l border-white/5 relative z-0">
+                    <div className="w-32 h-32 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                        <span className="text-5xl">✨</span>
+                    </div>
+                    <div className="text-gray-300 text-xl font-light">Select a conversation to start chatting</div>
                 </div>
             )}
             {/* Consolidated Call Interface Rendering */}
