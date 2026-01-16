@@ -1153,8 +1153,11 @@ const Chat = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            setMessages((prev) => [...prev, res.data]);
-            socket.emit('send_message', res.data);
+            setMessages((prev) => {
+                if (prev.some(m => m.id === res.data.id)) return prev;
+                return [...prev, res.data];
+            });
+            // socket.emit('send_message', res.data); // Removed redundant emit (Controller handles it)
 
             // Update conversations list immediately
             setConversations(prev => {
