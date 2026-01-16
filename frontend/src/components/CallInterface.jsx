@@ -49,6 +49,7 @@ const CallInterface = ({ call, isIncoming, onAccept, onReject, onEnd, switchRequ
     const [localStream, setLocalStream] = useState(null);
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
+    const [mediaError, setMediaError] = useState(null);
     const [remoteStreamAttached, setRemoteStreamAttached] = useState(false);
 
     const localVideoRef = useRef(null);
@@ -74,12 +75,14 @@ const CallInterface = ({ call, isIncoming, onAccept, onReject, onEnd, switchRequ
                 setLocalStream(stream);
             } catch (err) {
                 console.error("Failed to get local stream", err);
+                setMediaError("Could not access camera. Check permissions or close other apps.");
             }
         };
 
         // Reset states when call changes
         setIsVideoOff(false);
         setIsMuted(false);
+        setMediaError(null);
 
         initLocalStream();
     }, [isIncoming, call.localStream, call.isVideo]);
@@ -206,6 +209,14 @@ const CallInterface = ({ call, isIncoming, onAccept, onReject, onEnd, switchRequ
                 <div className="text-white font-bold text-lg drop-shadow-md">{call.name}</div>
             </div>
 
+            {/* Media Error Banner */}
+            {mediaError && (
+                <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-red-600/90 text-white px-6 py-3 rounded-full z-[60] text-sm font-medium animate-pulse shadow-lg backdrop-blur-sm flex items-center gap-2 pointer-events-none">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <span>{mediaError}</span>
+                </div>
+            )}
+
             {/* Switch Request Overlays */}
             {switchRequest === 'incoming' && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
@@ -269,9 +280,9 @@ const CallInterface = ({ call, isIncoming, onAccept, onReject, onEnd, switchRequ
                 />
             </div>
 
-            {/* Local Video - Only for Video Calls */}
-            {call.isVideo && remoteStreamAttached && (
-                <div className="absolute top-16 right-4 w-32 h-48 bg-gray-800 rounded-xl overflow-hidden shadow-2xl border border-gray-700 z-20">
+            {/* Local Video - WhatsApp Style PIP (Always visible if video call) */}
+            {call.isVideo && localStream && (
+                <div className="absolute top-4 right-4 w-32 h-48 md:w-40 md:h-60 bg-gray-800 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-700/50 z-50 transition-all hover:scale-105">
                     <video
                         ref={localVideoRef}
                         autoPlay
