@@ -126,11 +126,12 @@ const getAiResponse = async (userPrompt, conversationId, senderName, imageAttach
             try {
                 // Determine mime type
                 const mimeType = getMimeType(imageAttachment);
+                console.log(`📸 [GeminiService] Fetching Image: ${imageAttachment} (${mimeType})`);
 
                 // Need to fetch the image data and convert to base64
-                // Since user provided a URL (likely from uploads/), we need to read it or fetch it? 
-                // Using axios to fetch the image content as buffer
                 const imageResponse = await axios.get(imageAttachment, { responseType: 'arraybuffer' });
+                console.log(`📸 [GeminiService] Image Fetched. Status: ${imageResponse.status}, Size: ${imageResponse.data.length} bytes`);
+
                 const base64Data = Buffer.from(imageResponse.data).toString('base64');
 
                 parts.push({
@@ -139,12 +140,10 @@ const getAiResponse = async (userPrompt, conversationId, senderName, imageAttach
                         data: base64Data
                     }
                 });
-                console.log("📸 [GeminiService] Image added to payload");
+                console.log("📸 [GeminiService] Image successfully attached to payload.");
             } catch (imgErr) {
-                console.error("Failed to fetch image for AI:", imgErr.message);
-                // Continue without image or warn?
-                // Append text warning
-                parts.push({ text: "\n[System Note: User attached an image but I failed to read it.]" });
+                console.error("❌ [GeminiService] Failed to fetch image:", imgErr.message);
+                parts.push({ text: `\n[System Note: The user attached an image at ${imageAttachment}, but I failed to download it. Error: ${imgErr.message}]` });
             }
         }
 
