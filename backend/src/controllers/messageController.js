@@ -127,7 +127,7 @@ const sendMessage = async (req, res) => {
 
         // Emit real-time update
         const io = getIO();
-        io.to(String(conversationId)).emit('newMessage', fullMessage);
+        io.to(String(conversationId)).emit('receive_message', fullMessage);
 
         res.status(201).json(fullMessage);
 
@@ -146,7 +146,7 @@ const sendMessage = async (req, res) => {
         const isDirectToBot = receiver && receiver.email === 'ai@linkup.bot';
         const isCommand = content.startsWith('/ai ') || content.startsWith('/ask ');
 
-        if (isDirectToBot || isCommand) {
+        if ((isDirectToBot || isCommand) && messageType !== 'image') {
             console.log("🤖 AI Triggered via Native Service");
 
             // Extract Prompt
