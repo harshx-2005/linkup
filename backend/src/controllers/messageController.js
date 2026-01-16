@@ -159,10 +159,28 @@ const sendMessage = async (req, res) => {
             // Fire-and-forget allows the UI to update with the User's message first.
             (async () => {
                 let imageUrl = null;
+
                 if (messageType === 'image') {
                     // content field holds the URL for image messages 
-                    // (Assuming content is the full URL like http://.../uploads/file.png)
                     imageUrl = content;
+                } else if (messageType === 'text') {
+                    // [NEW] Look back for a recent image (within 2 minutes) from the same user
+                    // This handles "captioning" where text is sent shortly after image
+                    const tenMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+                    const lastImageMsg = await Message.findOne({
+                        where: {
+                            conversationId,
+                            senderId,
+                            messageType: 'image',
+                            createdAt: { [Op.gt]: tenMinutesAgo }
+                        },
+                        order: [['createdAt', 'DESC']]
+                    });
+
+                    if (lastImageMsg) {
+                        imageUrl = lastImageMsg.content;
+                        console.log(`📸 [MessageController] Found previous image context: ${imageUrl}`);
+                    }
                 }
 
                 const aiResponseText = await geminiService.getAiResponse(prompt, conversationId, senderName, imageUrl);

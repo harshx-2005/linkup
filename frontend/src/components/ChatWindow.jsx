@@ -376,13 +376,7 @@ const ChatWindow = ({
     const handleSend = async (e) => {
         e.preventDefault();
 
-        // 1. Send Text Message first if exists
-        if (newMessage.trim()) {
-            onSendMessage(newMessage);
-            setNewMessage('');
-        }
-
-        // 2. Upload and Send Files one by one
+        // 1. Upload and Send Files FIRST
         if (selectedFiles.length > 0) {
             for (const fileObj of selectedFiles) {
                 const formData = new FormData();
@@ -408,7 +402,7 @@ const ChatWindow = ({
                     let messageType = 'file';
 
                     const lowerName = fileObj.name.toLowerCase();
-                    if (mimetype.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/.test(lowerName)) {
+                    if (mimetype.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|avif|svg)$/.test(lowerName)) {
                         messageType = 'image';
                     } else if (mimetype.startsWith('video/') || /\.(mp4|webm|ogg|mov)$/.test(lowerName)) {
                         messageType = 'video';
@@ -417,7 +411,7 @@ const ChatWindow = ({
                     }
 
                     // Send the message for this file
-                    onSendMessage(`${messageType === 'file' ? 'File:' : ''} ${fileObj.name}`, messageType, url);
+                    await onSendMessage(`${messageType === 'file' ? 'File:' : ''} ${fileObj.name}`, messageType, url);
 
                     // Remove from queue visually (or mark done)
                     setUploadingFiles(prev => {
@@ -438,6 +432,13 @@ const ChatWindow = ({
             }
             // Clear all after attempts
             setSelectedFiles([]);
+        }
+
+        // 2. Send Text Message (Caption) SECOND
+        // This ensures the AI sees the image (sent above) as "context" for this text prompt
+        if (newMessage.trim()) {
+            await onSendMessage(newMessage); // Use await to ensure order if socket is fast
+            setNewMessage('');
         }
     };
 

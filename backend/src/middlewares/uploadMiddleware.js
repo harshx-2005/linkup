@@ -7,7 +7,7 @@ const storage = new CloudinaryStorage({
     params: {
         folder: 'linkup_uploads',
         resource_type: 'auto', // Auto-detect image/video/raw
-        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mp3', 'wav', 'pdf', 'doc', 'docx', 'txt'],
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'mp4', 'webm', 'ogg', 'mp3', 'wav', 'pdf', 'doc', 'docx', 'txt'],
     },
 });
 
