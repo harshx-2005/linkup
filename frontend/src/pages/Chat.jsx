@@ -444,18 +444,7 @@ const Chat = () => {
         socket.on('message_edited', handleMessageEdited);
         socket.on('message_deleted', handleMessageDeleted);
 
-        // WebRTC Listeners
-        socket.on('call_incoming', handleIncomingCall);
-        socket.on('call_accepted', handleCallAccepted);
-        socket.on('ice_candidate', handleIceCandidate);
-        socket.on('call_ended', handleCallEnded);
-        socket.on('call_rejected', handleCallEnded); // Reuse end logic to close UI
 
-        // Video Switch Listeners
-        socket.on('call_switch_request', handleIncomingSwitchRequest);
-        socket.on('call_switch_response', handleSwitchResponse);
-        socket.on('group_call_started', handleGroupCallStarted);
-        socket.on('group_call_ended', handleGroupCallEnded);
 
         return () => {
             socket.off('receive_message', handleReceiveMessage);
@@ -467,19 +456,35 @@ const Chat = () => {
             socket.off('messages_delivered', handleMessagesDelivered);
             socket.off('message_edited', handleMessageEdited);
             socket.off('message_deleted', handleMessageDeleted);
+        };
+    }, [user?.id, markMessagesAsSeen, markMessagesAsDelivered]);
 
+    // --- WebRTC Socket Listeners (Isolated for stability) ---
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on('call_incoming', handleIncomingCall);
+        socket.on('call_accepted', handleCallAccepted);
+        socket.on('ice_candidate', handleIceCandidate);
+        socket.on('call_ended', handleCallEnded);
+        socket.on('call_rejected', handleCallEnded);
+        socket.on('call_switch_request', handleIncomingSwitchRequest);
+        socket.on('call_switch_response', handleSwitchResponse);
+        socket.on('group_call_started', handleGroupCallStarted);
+        socket.on('group_call_ended', handleGroupCallEnded);
+
+        return () => {
             socket.off('call_incoming', handleIncomingCall);
             socket.off('call_accepted', handleCallAccepted);
             socket.off('ice_candidate', handleIceCandidate);
             socket.off('call_ended', handleCallEnded);
             socket.off('call_rejected', handleCallEnded);
-
             socket.off('call_switch_request', handleIncomingSwitchRequest);
             socket.off('call_switch_response', handleSwitchResponse);
             socket.off('group_call_started', handleGroupCallStarted);
             socket.off('group_call_ended', handleGroupCallEnded);
         };
-    }, [user?.id, markMessagesAsSeen, markMessagesAsDelivered]);
+    }, []); // Empty dependency array ensures stability
 
     // Join all conversation rooms to receive real-time updates
     useEffect(() => {

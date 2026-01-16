@@ -18,9 +18,11 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
     });
 
     return (
-        <div className="w-full h-full bg-gray-900 border-r border-gray-800 flex flex-col">
+        <div className="w-full h-full bg-[#101014]/95 backdrop-blur-2xl border-r border-[#2a2a2e] flex flex-col shadow-2xl relative overflow-hidden">
+            {/* Ambient Background Glow */}
+            <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
             {/* Header Area */}
-            <div className="p-4 bg-gray-900 border-b border-gray-800 shrink-0 z-10">
+            <div className="p-5 bg-transparent border-b border-[#2a2a2e] shrink-0 z-10 relative">
                 <div className="flex justify-between items-center mb-5">
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                         Chats
@@ -85,8 +87,8 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                     LinkUp AI
                 </button>
 
-                <div className="relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 absolute left-3 top-2.5 text-gray-500">
+                <div className="relative group">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 absolute left-3.5 top-3 text-gray-400 group-focus-within:text-blue-400 transition-colors">
                         <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clipRule="evenodd" />
                     </svg>
                     <input
@@ -94,7 +96,7 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                         placeholder="Search conversations..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 border border-gray-700 focus:border-blue-500/50 transition-all placeholder-gray-500"
+                        className="w-full pl-11 pr-4 py-3 rounded-2xl bg-[#1c1c1f] text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 border border-transparent focus:border-blue-500/30 transition-all placeholder-gray-500 shadow-inner"
                     />
                 </div>
             </div>
@@ -104,13 +106,13 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                     <div
                         key={conv.id}
                         onClick={() => onSelectConversation(conv)}
-                        className={`group p-3 rounded-xl flex items-center cursor-pointer transition-all border border-transparent ${selectedConversation?.id === conv.id
-                            ? 'bg-gradient-to-r from-blue-900/40 to-blue-900/10 border-blue-500/30'
-                            : 'hover:bg-gray-800 hover:border-gray-700'
+                        className={`group p-3.5 rounded-2xl flex items-center cursor-pointer transition-all duration-200 border border-transparent backdrop-blur-sm ${selectedConversation?.id === conv.id
+                            ? 'bg-[#252529] border-[#3b82f6]/20 shadow-lg shadow-black/20'
+                            : 'hover:bg-white/5 hover:border-white/5 active:scale-[0.98]'
                             }`}
                     >
-                        <div className="relative mr-3.5 shrink-0">
-                            <div className={`w-12 h-12 rounded-full overflow-hidden border-2 ${selectedConversation?.id === conv.id ? 'border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-gray-700 group-hover:border-gray-500'} transition-all`}>
+                        <div className="relative mr-4 shrink-0">
+                            <div className={`w-12 h-12 rounded-full overflow-hidden border ${selectedConversation?.id === conv.id ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]' : 'border-[#3f3f46] group-hover:border-[#52525b]'} transition-all duration-300 ring-2 ring-black/40`}>
                                 {conv.avatar ? (
                                     <img src={conv.avatar} alt="avatar" className="w-full h-full object-cover" />
                                 ) : conv.isGroup ? (

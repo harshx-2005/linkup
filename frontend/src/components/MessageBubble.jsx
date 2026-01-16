@@ -66,8 +66,8 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         // We let it fall through to the main return block so it gets the Avatar/Bubble structure.
         if (!isCallLog) {
             return (
-                <div className="flex justify-center my-2">
-                    <span className="bg-gray-800 text-gray-400 text-xs px-3 py-1 rounded-full border border-gray-700">
+                <div className="flex justify-center my-3 animate-in fade-in zoom-in-95 duration-300">
+                    <span className="bg-white/5 backdrop-blur-md text-gray-400 text-[10px] uppercase tracking-wider font-bold px-4 py-1.5 rounded-full border border-white/5 shadow-sm">
                         {systemContent}
                     </span>
                 </div>
@@ -86,7 +86,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
             {contextMenu && (
                 <div
                     ref={menuRef}
-                    className="fixed bg-gray-800 border border-gray-700 rounded shadow-xl z-50 py-1 flex flex-col min-w-[150px]"
+                    className="fixed bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-xl shadow-2xl z-50 py-1.5 flex flex-col min-w-[160px] animate-in fade-in zoom-in-95 origin-top-left"
                     style={{ top: contextMenu.y, left: contextMenu.x }}
                 >
                     {isOwn && !message.deletedForEveryone && (
@@ -114,7 +114,8 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
                     {/* Download option for media/files */}
                     {(message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio' || message.messageType === 'file') && (
-                        <button onClick={handleDownload} className="px-4 py-2 text-left text-sm text-blue-400 hover:bg-gray-700">
+                        <button onClick={handleDownload} className="px-4 py-2.5 text-left text-sm text-blue-400 hover:bg-white/5 transition-colors font-medium flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.965 3.129V2.75z" /><path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" /></svg>
                             Download
                         </button>
                     )}
@@ -122,11 +123,11 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
             )}
 
             {!isOwn && (
-                <div className="w-8 h-8 rounded-full bg-gray-600 mr-2 overflow-hidden flex-shrink-0 mt-1">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 mr-2 overflow-hidden flex-shrink-0 mt-auto mb-1 ring-2 ring-[#1c1c1f]">
                     {message.User?.avatar ? (
                         <img src={message.User.avatar} alt={message.User.name} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
+                        <div className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold">
                             {message.User?.name ? message.User.name[0].toUpperCase() : '?'}
                         </div>
                     )}
@@ -134,10 +135,10 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
             )}
 
             <div
-                className={`max-w-xs md:max-w-md px-4 py-2.5 rounded-2xl shadow-sm ${isOwn
-                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-sm'
-                    : 'bg-gray-800 border border-gray-700/50 text-gray-100 rounded-bl-sm'
-                    } ${message.deletedForEveryone ? 'italic text-gray-400 border border-gray-600 bg-transparent shadow-none' : ''}`}
+                className={`max-w-xs md:max-w-md px-5 py-3 shadow-sm relative group/bubble transition-all duration-200 ${isOwn
+                    ? 'bg-gradient-to-tr from-[#3b82f6] to-[#8b5cf6] text-white rounded-[1.5rem] rounded-tr-sm shadow-blue-500/20'
+                    : 'bg-[#2a2a2e]/80 backdrop-blur-sm border border-white/5 text-gray-100 rounded-[1.5rem] rounded-tl-sm'
+                    } ${message.deletedForEveryone ? 'italic text-gray-500 border border-gray-700/50 bg-transparent shadow-none' : ''}`}
             >
                 {!isOwn && isGroup && message.User?.name && !message.deletedForEveryone && (
                     <p className="text-xs text-blue-400 mb-1 font-bold tracking-wide">{message.User.name}</p>
