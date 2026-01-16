@@ -530,11 +530,19 @@ const Chat = () => {
         };
 
         pc.ontrack = (event) => {
-            console.log("Remote stream received");
+            console.log("Remote stream received", event.streams);
             if (event.streams && event.streams[0]) {
+                console.log("Setting remote stream to state", event.streams[0].id);
                 setActiveCall(prev => ({ ...prev, remoteStream: event.streams[0] }));
+            } else {
+                console.warn("Received track event but no stream found", event);
             }
         };
+
+        pc.oniceconnectionstatechange = () => {
+            console.log("ICE Connection State:", pc.iceConnectionState);
+        };
+
         return pc;
     };
 
@@ -959,6 +967,18 @@ const Chat = () => {
     const handleCallAccepted = async (answer) => {
         if (peerConnectionRef.current) {
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+
+            // Process queued ICE candidates (Caller Side)
+            while (iceCandidatesQueue.current.length > 0) {
+                const candidate = iceCandidatesQueue.current.shift();
+                try {
+                    await peerConnectionRef.current.addIceCandidate(candidate);
+                    console.log("Successfully added queued ICE candidate (Caller)");
+                } catch (e) {
+                    console.error("Error adding queued candidate", e);
+                }
+            }
+
             // For the caller, the call starts when accepted
             if (activeCallRef.current?.isCaller) {
                 callStartTimeRef.current = Date.now();
@@ -969,15 +989,18 @@ const Chat = () => {
     };
 
     const handleIceCandidate = async (candidate) => {
-        if (peerConnectionRef.current) {
+        console.log("Socket: Received ICE candidate from remote");
+        // Must have remoteDescription set before adding candidates
+        if (peerConnectionRef.current && peerConnectionRef.current.remoteDescription) {
             try {
                 await peerConnectionRef.current.addIceCandidate(candidate);
+                console.log("Successfully added ICE candidate");
             } catch (e) {
                 console.error("Error adding ice candidate", e);
             }
         } else {
-            // Queue candidate if PC not ready (Incoming call state)
-            console.log("Queueing ICE candidate");
+            // Queue candidate if PC not ready or remote description missing
+            console.log("Queueing ICE candidate (No Remote Description)");
             iceCandidatesQueue.current.push(candidate);
         }
     };
@@ -1343,7 +1366,7 @@ const Chat = () => {
                         onRejectRequest={handleRejectRequest}
                         onBlockUser={handleBlockUser}
                         onClearChat={handleClearChat}
-                        onDismissCallBanner={handleDismissCallBanner}
+
                         onBack={() => setSelectedConversation(null)}
                     />
                 </div>
