@@ -128,8 +128,15 @@ const getAiResponse = async (userPrompt, conversationId, senderName, imageAttach
                 const mimeType = getMimeType(imageAttachment);
                 console.log(`📸 [GeminiService] Fetching Image: ${imageAttachment} (${mimeType})`);
 
-                // Need to fetch the image data and convert to base64
-                const imageResponse = await axios.get(imageAttachment, { responseType: 'arraybuffer' });
+                // Fetch with headers to look like a browser/legitimate client
+                const imageResponse = await axios.get(imageAttachment, {
+                    responseType: 'arraybuffer',
+                    headers: {
+                        'User-Agent': 'LinkUp-AI-Agent/1.0',
+                        'Accept': 'image/*,*/*'
+                    }
+                });
+
                 console.log(`📸 [GeminiService] Image Fetched. Status: ${imageResponse.status}, Size: ${imageResponse.data.length} bytes`);
 
                 const base64Data = Buffer.from(imageResponse.data).toString('base64');
@@ -140,10 +147,13 @@ const getAiResponse = async (userPrompt, conversationId, senderName, imageAttach
                         data: base64Data
                     }
                 });
-                console.log("📸 [GeminiService] Image successfully attached to payload.");
             } catch (imgErr) {
                 console.error("❌ [GeminiService] Failed to fetch image:", imgErr.message);
-                parts.push({ text: `\n[System Note: The user attached an image at ${imageAttachment}, but I failed to download it. Error: ${imgErr.message}]` });
+
+                // Fallback: If it's a Cloudinary URL, sometimes transformations help or debugging the URL
+                const errorMsg = imgErr.response ? `Status ${imgErr.response.status}` : imgErr.message;
+
+                parts.push({ text: `\n[System Note: I tried to download the image you sent (${imageAttachment}), but I failed. Error: ${errorMsg}. Please ask the user to describe it instead.]` });
             }
         }
 
