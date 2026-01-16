@@ -161,8 +161,8 @@ const sendMessage = async (req, res) => {
                 let imageUrl = null;
 
                 if (messageType === 'image') {
-                    // content field holds the URL for image messages 
-                    imageUrl = content;
+                    // content field holds the filename, attachmentUrl holds the URL
+                    imageUrl = attachmentUrl || content;
                 } else if (messageType === 'text') {
                     // [NEW] Look back for a recent image (within 2 minutes) from the same user
                     // This handles "captioning" where text is sent shortly after image
@@ -178,7 +178,8 @@ const sendMessage = async (req, res) => {
                     });
 
                     if (lastImageMsg) {
-                        imageUrl = lastImageMsg.content;
+                        // Prefer attachmentUrl if available
+                        imageUrl = lastImageMsg.attachmentUrl || lastImageMsg.content;
                         console.log(`📸 [MessageController] Found previous image context: ${imageUrl}`);
                     }
                 }
