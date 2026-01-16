@@ -1,5 +1,5 @@
 const https = require('https');
-const apiKey = 'AIzaSyCtfIsUUcyjsvTgweNWSG1HRd_laIPDKXk';
+const apiKey = process.env.GEMINI_API_KEY || 'YOUR_API_KEY_HERE';
 const url = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
 
 const payload = JSON.stringify({ "contents": [{ "parts": [{ "text": "Hi" }] }] });
