@@ -46,6 +46,7 @@ const Chat = () => {
     const callTimeoutRef = useRef(null);
 
     const iceCandidatesQueue = useRef([]);
+    const tempRemoteStreamRef = useRef(null); // Fix for receiver crash
 
     useEffect(() => {
         selectedConversationRef.current = selectedConversation;
@@ -538,7 +539,15 @@ const Chat = () => {
             console.log("Remote stream received", event.streams);
             if (event.streams && event.streams[0]) {
                 const stream = event.streams[0];
+                tempRemoteStreamRef.current = stream; // Backup for receiver initialization
+
                 setActiveCall(prev => {
+                    // CRITICAL FIX: If state isn't ready (Receiver), just return (ref handles it)
+                    if (!prev) {
+                        console.log("State not ready in ontrack, stored in ref", stream.id);
+                        return prev;
+                    }
+
                     // Prevent redundant updates if stream ID is same
                     if (prev.remoteStream && prev.remoteStream.id === stream.id) {
                         return prev;
@@ -925,7 +934,8 @@ const Chat = () => {
                 isCaller: false,
                 localStream: stream,
                 toUserId: incomingCall.fromUserId,
-                remoteStream: prev?.remoteStream || null
+                toUserId: incomingCall.fromUserId,
+                remoteStream: tempRemoteStreamRef.current || prev?.remoteStream || null
             }));
             callStartTimeRef.current = Date.now();
             setIncomingCall(null);
