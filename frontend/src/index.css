@@ -4,26 +4,15 @@
 body {
     background: #0f0f11;
     color: #e4e4e7;
-    /* zinc-200 */
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overflow: hidden;
-    /* Prevent body scroll, handle in app */
-}
 
-/* 
-  Deep Vivid Aurora Gradient Background 
-  This creates the "Ambient" light seen in the reference images.
-*/
-.premium-bg {
+    /* Aurora Background Applied Globally */
     background:
         radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.15) 0%, transparent 50%),
-        /* Deep Purple */
         radial-gradient(circle at 85% 30%, rgba(185, 28, 28, 0.1) 0%, transparent 50%),
-        /* Deep Red */
         radial-gradient(circle at 50% 80%, rgba(15, 23, 42, 1) 0%, transparent 100%),
-        /* Deep Slate Base */
         #09090b;
-    /* Fallback Black */
     background-size: 200% 200%;
     animation: aurora 15s ease infinite alternate;
 }

@@ -62,22 +62,40 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
             // Not JSON
         }
 
-        // IF it is a call log, we DO NOT return early anymore.
-        // We let it fall through to the main return block so it gets the Avatar/Bubble structure.
-        if (!isCallLog) {
+        // Render Call Logs as System Pills (Centered)
+        if (isCallLog) {
+            let parsed = {};
+            try { parsed = JSON.parse(message.content); } catch (e) { }
+
+            const isMissed = parsed.status === 'missed' || parsed.status === 'declined' || parsed.status === 'busy';
+            const duration = parsed.duration || (isMissed ? 'Missed' : 'Ended');
+            const icon = parsed.isVideo ? '🎥' : '📞';
+
             return (
-                <div className="flex justify-center my-3 animate-in fade-in zoom-in-95 duration-300">
-                    <span className="bg-white/5 backdrop-blur-md text-gray-400 text-[10px] uppercase tracking-wider font-bold px-4 py-1.5 rounded-full border border-white/5 shadow-sm">
-                        {systemContent}
-                    </span>
+                <div className="flex justify-center my-4 animate-in fade-in zoom-in-95 duration-300">
+                    <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md text-gray-300 text-xs px-4 py-1.5 rounded-full border border-white/5 shadow-sm">
+                        <span>{icon}</span>
+                        <span className="font-bold">{parsed.isVideo ? 'Video Call' : 'Voice Call'}</span>
+                        <span className="opacity-50">•</span>
+                        <span>{duration}</span>
+                    </div>
                 </div>
             );
         }
+
+        // Normal System Message
+        return (
+            <div className="flex justify-center my-3 animate-in fade-in zoom-in-95 duration-300">
+                <span className="bg-white/5 backdrop-blur-md text-gray-400 text-[10px] uppercase tracking-wider font-bold px-4 py-1.5 rounded-full border border-white/5 shadow-sm">
+                    {systemContent}
+                </span>
+            </div>
+        );
     }
 
     return (
         <div
-            className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4 group relative`}
+            className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-2 group relative`}
             onMouseEnter={() => setShowActions(true)}
             onMouseLeave={() => setShowActions(false)}
             onContextMenu={handleContextMenu}
@@ -139,7 +157,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                 className={`max-w-xs md:max-w-md shadow-sm relative group/bubble transition-all duration-200 flex flex-col 
                     ${isOwn
                         ? 'bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 text-white rounded-[1.25rem] rounded-tr-sm shadow-indigo-500/20 shadow-lg'
-                        : 'bg-black/40 backdrop-blur-md border border-white/10 text-gray-100 rounded-[1.25rem] rounded-tl-sm shadow-lg'
+                        : 'bg-[#18181b]/90 backdrop-blur-md border border-white/5 text-gray-100 rounded-[1.25rem] rounded-tl-sm shadow-md'
                     } ${message.deletedForEveryone ? 'italic text-gray-400 border border-gray-600/30 bg-white/5 shadow-none px-4 py-2' : ''}`}
             >
                 {!isOwn && isGroup && message.User?.name && !message.deletedForEveryone && (
