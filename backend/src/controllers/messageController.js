@@ -158,7 +158,14 @@ const sendMessage = async (req, res) => {
             // Actually, for simplicity/reliability, let's await it or fire-and-forget properly.
             // Fire-and-forget allows the UI to update with the User's message first.
             (async () => {
-                const aiResponseText = await geminiService.getAiResponse(prompt, conversationId, senderName);
+                let imageUrl = null;
+                if (messageType === 'image') {
+                    // content field holds the URL for image messages 
+                    // (Assuming content is the full URL like http://.../uploads/file.png)
+                    imageUrl = content;
+                }
+
+                const aiResponseText = await geminiService.getAiResponse(prompt, conversationId, senderName, imageUrl);
 
                 if (aiResponseText) {
                     // Find AI User ID (assuming receiver was the bot, or we need to find it)
@@ -382,6 +389,33 @@ const editMessage = async (req, res) => {
     }
 };
 
+const summarizeConversation = async (req, res) => {
+    try {
+        const { conversationId } = req.body;
+        // Basic check
+        if (!conversationId) return res.status(400).json({ error: "conversationId required" });
+
+        const summary = await geminiService.generateSummary(conversationId);
+        res.json({ summary });
+    } catch (error) {
+        console.error("Summarize Error:", error);
+        res.status(500).json({ error: "Failed to summarize" });
+    }
+};
+
+const rewriteMessage = async (req, res) => {
+    try {
+        const { text, tone } = req.body;
+        if (!text || !tone) return res.status(400).json({ error: "text and tone required" });
+
+        const rewritten = await geminiService.rewriteMessage(text, tone);
+        res.json({ rewritten });
+    } catch (error) {
+        console.error("Rewrite Error:", error);
+        res.status(500).json({ error: "Failed to rewrite" });
+    }
+};
+
 module.exports = {
     getMessages,
     sendMessage,
@@ -389,5 +423,7 @@ module.exports = {
     markMessagesAsDelivered,
     deleteMessage,
     editMessage,
-    getSmartReplies
+    getSmartReplies,
+    summarizeConversation,
+    rewriteMessage
 };

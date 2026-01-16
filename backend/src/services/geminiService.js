@@ -75,9 +75,17 @@ const generateSmartReplies = async (conversationContext) => {
     }
 };
 
-const getAiResponse = async (userPrompt, conversationId, senderName) => {
+// Helper to convert file format to MIME type
+const getMimeType = (url) => {
+    if (url.endsWith('.png')) return 'image/png';
+    if (url.endsWith('.jpg') || url.endsWith('.jpeg')) return 'image/jpeg';
+    if (url.endsWith('.webp')) return 'image/webp';
+    return 'image/jpeg'; // Fallback
+};
+
+const getAiResponse = async (userPrompt, conversationId, senderName, imageAttachment = null) => {
     try {
-        console.log(`🤖 [GeminiService] Chat Request from ${senderName}: ${userPrompt}`);
+        console.log(`🤖 [GeminiService] Chat Request from ${senderName}: ${userPrompt} ${imageAttachment ? '[Image Attached]' : ''}`);
 
         // Fetch last 10 messages for context
         const history = await Message.findAll({
@@ -91,7 +99,7 @@ const getAiResponse = async (userPrompt, conversationId, senderName) => {
         // Filter out ANY message that looks like an error report from the bot
         const conversationHistory = history.reverse()
             .filter(m => {
-                const text = m.content.toLowerCase();
+                const text = (m.content || "").toLowerCase();
                 return !text.includes("check server logs") &&
                     !text.includes("trouble connecting") &&
                     !text.includes("technical difficulties") &&
@@ -99,8 +107,6 @@ const getAiResponse = async (userPrompt, conversationId, senderName) => {
             })
             .map(m => `${m.User?.name || 'User'}: ${m.content}`)
             .join('\n');
-
-        console.log("📝 [GeminiService] Context Sent to AI:\n", conversationHistory);
 
         const systemInstruction = `You are LinkUp AI, a helpful and friendly assistant inside the LinkUp chat app.
         You are currently chatting with ${senderName}.
@@ -113,8 +119,37 @@ const getAiResponse = async (userPrompt, conversationId, senderName) => {
         Answer the user's latest message: "${userPrompt}"
         Keep your answers concise, helpful, and friendly.`;
 
+        const parts = [{ text: systemInstruction }];
+
+        // Handle Image Attachment (Multimodal)
+        if (imageAttachment) {
+            try {
+                // Determine mime type
+                const mimeType = getMimeType(imageAttachment);
+
+                // Need to fetch the image data and convert to base64
+                // Since user provided a URL (likely from uploads/), we need to read it or fetch it? 
+                // Using axios to fetch the image content as buffer
+                const imageResponse = await axios.get(imageAttachment, { responseType: 'arraybuffer' });
+                const base64Data = Buffer.from(imageResponse.data).toString('base64');
+
+                parts.push({
+                    inline_data: {
+                        mime_type: mimeType,
+                        data: base64Data
+                    }
+                });
+                console.log("📸 [GeminiService] Image added to payload");
+            } catch (imgErr) {
+                console.error("Failed to fetch image for AI:", imgErr.message);
+                // Continue without image or warn?
+                // Append text warning
+                parts.push({ text: "\n[System Note: User attached an image but I failed to read it.]" });
+            }
+        }
+
         const payload = {
-            contents: [{ parts: [{ text: systemInstruction }] }]
+            contents: [{ parts: parts }]
         };
 
         const data = await callGeminiAPI(payload);
@@ -131,4 +166,64 @@ const getAiResponse = async (userPrompt, conversationId, senderName) => {
     }
 };
 
-module.exports = { generateSmartReplies, getAiResponse };
+const generateSummary = async (conversationId) => {
+    try {
+        // Fetch last 50 messages
+        const history = await Message.findAll({
+            where: { conversationId },
+            order: [['createdAt', 'DESC']],
+            limit: 50,
+            include: [{ association: 'User', attributes: ['name'] }]
+        });
+
+        if (history.length < 5) return "Not enough conversation history to summarize.";
+
+        const chatLog = history.reverse()
+            .map(m => `${m.User?.name || 'User'}: ${m.content}`)
+            .join('\n');
+
+        const prompt = `
+        Read the following chat conversation and provide a concise summary.
+        Use exactly 3 bullet points.
+        Capture the key topics, decisions, or funny moments.
+        
+        Chat Log:
+        ${chatLog}
+        `;
+
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }]
+        };
+
+        const data = await callGeminiAPI(payload);
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Failed to generate summary.";
+
+    } catch (error) {
+        console.error("❌ [GeminiService] Summary Error:", error);
+        throw error;
+    }
+};
+
+const rewriteMessage = async (text, tone) => {
+    try {
+        const prompt = `
+        Rewrite the following text to have a "${tone}" tone.
+        Text: "${text}"
+        
+        Output ONLY the rewritten text. Do not add quotes or explanations.
+        `;
+
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }]
+        };
+
+        const data = await callGeminiAPI(payload);
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || text;
+
+    } catch (error) {
+        console.error("❌ [GeminiService] Rewrite Error:", error);
+        return text; // Fallback to original
+    }
+};
+
+module.exports = { generateSmartReplies, getAiResponse, generateSummary, rewriteMessage };

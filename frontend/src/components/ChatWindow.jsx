@@ -313,6 +313,53 @@ const ChatWindow = ({
         }
     };
 
+    // [NEW] AI Feature States
+    const [isSummarizing, setIsSummarizing] = useState(false);
+    const [summaryResult, setSummaryResult] = useState(null); // { text }
+    const [showRewriteMenu, setShowRewriteMenu] = useState(false);
+    const [isRewriting, setIsRewriting] = useState(false);
+
+    // AI Handlers
+    const requestSummary = async () => {
+        if (!conversation) return;
+        setIsSummarizing(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post('/api/messages/summarize', {
+                conversationId: conversation.id
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setSummaryResult(res.data.summary); // stored as markdown text
+        } catch (error) {
+            console.error("Summary failed:", error);
+            alert("Failed to summarize chat.");
+        } finally {
+            setIsSummarizing(false);
+            setShowMenu(false); // Close menu
+        }
+    };
+
+    const requestRewrite = async (tone) => {
+        if (!newMessage.trim()) return;
+        setIsRewriting(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post('/api/messages/rewrite', {
+                text: newMessage,
+                tone
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setNewMessage(res.data.rewritten);
+        } catch (error) {
+            console.error("Rewrite failed:", error);
+        } finally {
+            setIsRewriting(false);
+            setShowRewriteMenu(false);
+        }
+    };
+
     const handleReplyClick = async (reply) => {
         // [Fixed] Send immediately on click ("One Tap")
         if (!reply) return;
@@ -412,6 +459,27 @@ const ChatWindow = ({
 
     return (
         <div className="h-full flex flex-col bg-gray-900 relative overflow-hidden">
+            {/* [NEW] Summary Modal */}
+            {summaryResult && (
+                <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95">
+                        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <span className="text-2xl">📝</span> Chat Summary
+                        </h3>
+                        <div className="space-y-3 text-gray-300 text-sm leading-relaxed mb-6">
+                            {summaryResult.split('\n').map((line, i) => (
+                                <p key={i}>{line}</p>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setSummaryResult(null)}
+                            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <div className="p-4 border-b border-gray-800 bg-gray-900 flex items-center justify-between z-20 shadow-sm shrink-0">
                 <div className="flex items-center gap-3">
@@ -544,6 +612,22 @@ const ChatWindow = ({
                                         Block User
                                     </button>
                                 )}
+
+                                <div className="h-px bg-gray-700 my-1" />
+
+                                {/* [NEW] Summarize Chat */}
+                                <button
+                                    onClick={requestSummary}
+                                    disabled={isSummarizing}
+                                    className="w-full text-left px-4 py-3 hover:bg-gray-700 flex items-center gap-3 text-purple-400 hover:text-purple-300 transition disabled:opacity-50"
+                                >
+                                    {isSummarizing ? (
+                                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="3" y2="18"></line></svg>
+                                    )}
+                                    Summarize Chat
+                                </button>
                             </div>
                         )}
                     </div>
@@ -868,6 +952,44 @@ const ChatWindow = ({
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
                                     </svg>
                                 </button>
+
+                                {/* [NEW] Magic Wand (Rewrite) */}
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowRewriteMenu(!showRewriteMenu)}
+                                        className={`p-2 transition-colors ${showRewriteMenu ? 'text-purple-400' : 'text-gray-400 hover:text-purple-400'}`}
+                                        title="Rewrite Tone"
+                                        disabled={isRewriting}
+                                    >
+                                        {isRewriting ? (
+                                            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                        ) : (
+                                            <span className="text-xl">🪄</span>
+                                        )}
+                                    </button>
+
+                                    {showRewriteMenu && (
+                                        <div className="absolute bottom-12 left-0 bg-gray-800 border border-gray-700 rounded-xl shadow-xl w-40 overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2">
+                                            <div className="p-2 border-b border-gray-700 text-xs font-bold text-gray-400">Rewrite Tone</div>
+                                            {[
+                                                { label: 'Professional', emoji: '💼' },
+                                                { label: 'Friendly', emoji: '😊' },
+                                                { label: 'Funny', emoji: '🤪' },
+                                                { label: 'Romantic', emoji: '🌹' }
+                                            ].map((opt) => (
+                                                <button
+                                                    key={opt.label}
+                                                    type="button"
+                                                    onClick={() => requestRewrite(opt.label)}
+                                                    className="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-300 hover:text-white text-sm flex items-center gap-2 transition"
+                                                >
+                                                    <span>{opt.emoji}</span> {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* [NEW] Smart Reply Button */}
                                 <button

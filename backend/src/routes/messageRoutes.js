@@ -1,5 +1,5 @@
 const express = require('express');
-const { getMessages, sendMessage, markMessagesAsSeen, markMessagesAsDelivered, deleteMessage, editMessage, getSmartReplies } = require('../controllers/messageController');
+const { getMessages, sendMessage, markMessagesAsSeen, markMessagesAsDelivered, deleteMessage, editMessage, getSmartReplies, summarizeConversation, rewriteMessage } = require('../controllers/messageController');
 const verifyToken = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -15,5 +15,7 @@ router.post('/delivered', verifyToken, markMessagesAsDelivered);
 router.delete('/:id', verifyToken, deleteMessage);
 router.put('/:id', verifyToken, editMessage);
 router.post('/smart-replies', verifyToken, getSmartReplies);
+router.post('/summarize', verifyToken, summarizeConversation);
+router.post('/rewrite', verifyToken, rewriteMessage);
 
 module.exports = router;
