@@ -890,12 +890,14 @@ const ChatWindow = ({
 
                             {/* Attachment Menu Popover */}
                             {isAttachmentMenuOpen && (
-                                <div className="absolute bottom-20 left-12 mb-2 z-50 bg-[#18181b]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-[#27272a] flex flex-col w-56 overflow-hidden animate-in slide-in-from-bottom-5 zoom-in-95 origin-bottom-left p-1.5">
+                                <div className="absolute bottom-[calc(100%+10px)] left-4 z-50 bg-[#18181b]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-[#27272a] flex flex-col w-60 overflow-hidden animate-in slide-in-from-bottom-5 zoom-in-95 origin-bottom-left p-1.5">
                                     <button
                                         onClick={() => mediaInputRef.current.click()}
                                         className="p-3 text-left hover:bg-white/5 rounded-xl text-gray-200 hover:text-white flex items-center gap-3 transition-colors font-medium text-sm group"
                                     >
-                                        <span className="text-blue-400 text-lg bg-blue-500/10 p-2 rounded-lg group-hover:bg-blue-500/20 transition-colors">🖼️</span>
+                                        <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500 group-hover:bg-blue-500/20 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+                                        </div>
                                         <div className="flex flex-col">
                                             <span>Photos & Videos</span>
                                             <span className="text-[10px] text-gray-500">Share media files</span>
@@ -905,7 +907,9 @@ const ChatWindow = ({
                                         onClick={() => fileInputRef.current.click()}
                                         className="p-3 text-left hover:bg-white/5 rounded-xl text-gray-200 hover:text-white flex items-center gap-3 transition-colors font-medium text-sm group"
                                     >
-                                        <span className="text-purple-400 text-lg bg-purple-500/10 p-2 rounded-lg group-hover:bg-purple-500/20 transition-colors">📄</span>
+                                        <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 group-hover:bg-purple-500/20 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
+                                        </div>
                                         <div className="flex flex-col">
                                             <span>Document</span>
                                             <span className="text-[10px] text-gray-500">Send files & pdfs</span>
@@ -915,7 +919,9 @@ const ChatWindow = ({
                                         onClick={() => setShowCamera(true)}
                                         className="p-3 text-left hover:bg-white/5 rounded-xl text-gray-200 hover:text-white flex items-center gap-3 transition-colors font-medium text-sm group"
                                     >
-                                        <span className="text-red-400 text-lg bg-red-500/10 p-2 rounded-lg group-hover:bg-red-500/20 transition-colors">📷</span>
+                                        <div className="p-2 rounded-lg bg-red-500/10 text-red-500 group-hover:bg-red-500/20 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
+                                        </div>
                                         <div className="flex flex-col">
                                             <span>Camera</span>
                                             <span className="text-[10px] text-gray-500">Take a photo</span>
@@ -930,7 +936,7 @@ const ChatWindow = ({
                             )}
 
                             {isRecording ? (
-                                <div className="flex items-center gap-4 bg-red-500/10 border border-red-500/20 p-2 rounded-2xl text-white animate-pulse z-20 relative">
+                                <div className="flex items-center gap-4 bg-red-500/10 border border-red-500/20 p-2 rounded-2xl text-white animate-pulse z-20 relative w-full">
                                     <div className="text-red-500 w-3 h-3 rounded-full bg-red-500 animate-ping mx-2"></div>
                                     <div className="flex-1 font-mono text-red-100 font-bold tracking-wider">{formatTime(recordingDuration)}</div>
                                     <button onClick={cancelRecording} className="text-xs font-bold text-red-300 hover:text-white uppercase tracking-wider px-2">Cancel</button>
@@ -941,7 +947,7 @@ const ChatWindow = ({
                                     </button>
                                 </div>
                             ) : (
-                                <form onSubmit={handleSend} className="flex items-end gap-2 relative z-20">
+                                <form onSubmit={handleSend} className="flex items-end gap-2 relative z-20 w-full">
                                     {/* Hidden Inputs */}
                                     <input
                                         type="file"
@@ -967,33 +973,69 @@ const ChatWindow = ({
                                             setIsAttachmentMenuOpen(!isAttachmentMenuOpen);
                                             setShowEmojiPicker(false);
                                         }}
-                                        className={`text-gray-400 hover:text-blue-400 p-3 rounded-xl hover:bg-[#27272a] transition-all duration-200 mb-1 ${isAttachmentMenuOpen ? 'text-blue-400 bg-[#27272a]' : ''}`}
+                                        className={`p-3 rounded-full transition-all duration-200 mb-1 flex-shrink-0 ${isAttachmentMenuOpen ? 'bg-white/10 text-white rotate-45' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                                         title="Attach"
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                                            <path d="M5 12h14" />
+                                            <path d="M12 5v14" />
                                         </svg>
                                     </button>
 
-                                    <div className="flex-1 bg-black/30 backdrop-blur-xl rounded-full border border-white/10 focus-within:border-white/20 focus-within:bg-black/50 transition-all flex items-end min-h-[50px] relative shadow-lg">
-                                        {/* [NEW] Magic Wand (Rewrite) */}
-                                        <div className="relative mb-1 ml-1">
+                                    <div className="flex-1 bg-[#18181b] rounded-[24px] border border-[#27272a] focus-within:border-gray-500 transition-all flex items-end min-h-[50px] relative shadow-sm">
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                            className={`p-3 text-gray-400 hover:text-yellow-400 transition-colors ${showEmojiPicker ? 'text-yellow-400' : ''}`}
+                                            title="Emoji"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                                                <circle cx="12" cy="12" r="10" />
+                                                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                                                <line x1="9" y1="9" x2="9.01" y2="9" />
+                                                <line x1="15" y1="9" x2="15.01" y2="9" />
+                                            </svg>
+                                        </button>
+
+                                        <textarea
+                                            value={newMessage}
+                                            onChange={(e) => {
+                                                handleInputChange(e);
+                                                if (smartReplies.length > 0) setSmartReplies([]);
+                                            }}
+                                            onBlur={handleBlur}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    handleSend(e);
+                                                }
+                                            }}
+                                            placeholder={selectedFiles.length > 0 ? "Add a caption..." : "Type a message..."}
+                                            className="flex-1 py-3.5 bg-transparent text-white focus:outline-none resize-none overflow-hidden placeholder-gray-500 font-medium leading-relaxed max-h-32 text-sm"
+                                            rows={1}
+                                            disabled={isUploading}
+                                            style={{ minHeight: '24px' }}
+                                        />
+
+                                        {/* Magic Wand (Rewrite) */}
+                                        <div className="relative mr-1 mb-1">
                                             <button
                                                 type="button"
                                                 onClick={() => setShowRewriteMenu(!showRewriteMenu)}
-                                                className={`p-2 rounded-xl transition-all duration-200 ${showRewriteMenu ? 'text-purple-400' : 'text-gray-400 hover:text-purple-400 hover:bg-white/5'}`}
+                                                className={`p-2 rounded-full transition-all duration-200 ${showRewriteMenu ? 'text-purple-400 bg-purple-500/10' : 'text-gray-400 hover:text-purple-400 hover:bg-white/5'}`}
                                                 title="Rewrite Tone"
                                                 disabled={isRewriting}
                                             >
                                                 {isRewriting ? (
                                                     <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                                                 ) : (
-                                                    <span className="text-lg filter drop-shadow-sm">🪄</span>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M9 3v4" /><path d="M3 5h4" /><path d="M3 9h4" /></svg>
                                                 )}
                                             </button>
 
                                             {showRewriteMenu && (
-                                                <div className="absolute bottom-full left-0 mb-2 bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-2xl shadow-xl w-48 overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 p-1">
+                                                <div className="absolute bottom-full right-0 mb-2 bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-2xl shadow-xl w-48 overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 p-1">
                                                     <div className="px-3 py-2 border-b border-[#2a2a2e] text-[10px] uppercase tracking-widest font-bold text-gray-500">Rewrite Tone</div>
                                                     {[
                                                         { label: 'Professional', emoji: '💼' },
@@ -1013,49 +1055,15 @@ const ChatWindow = ({
                                                 </div>
                                             )}
                                         </div>
-
-                                        <textarea
-                                            value={newMessage}
-                                            onChange={(e) => {
-                                                handleInputChange(e);
-                                                if (smartReplies.length > 0) setSmartReplies([]);
-                                            }}
-                                            onBlur={handleBlur}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' && !e.shiftKey) {
-                                                    e.preventDefault();
-                                                    handleSend(e);
-                                                }
-                                            }}
-                                            placeholder={selectedFiles.length > 0 ? "Add a caption..." : "Type a message..."}
-                                            className="flex-1 px-3 py-3 bg-transparent text-white focus:outline-none resize-none overflow-hidden placeholder-gray-500/80 font-medium leading-relaxed max-h-32 text-sm"
-                                            rows={1}
-                                            disabled={isUploading}
-                                            style={{ minHeight: '52px' }}
-                                        />
-
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setShowEmojiPicker(!showEmojiPicker);
-                                                setIsAttachmentMenuOpen(false);
-                                            }}
-                                            className={`text-gray-400 hover:text-yellow-400 p-2.5 rounded-xl hover:bg-white/5 transition-all duration-200 mb-1 mr-1 ${showEmojiPicker ? 'text-yellow-400' : ''}`}
-                                            title="Emoji"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm6.75 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75z" />
-                                            </svg>
-                                        </button>
                                     </div>
 
                                     {newMessage.trim() || selectedFiles.length > 0 ? (
                                         <button
                                             type="submit"
-                                            className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mb-1"
+                                            className="bg-green-600 hover:bg-green-500 text-white p-3 rounded-full shadow-lg shadow-green-600/20 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mb-1 flex-shrink-0"
                                             disabled={isUploading}
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
                                                 <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                                             </svg>
                                         </button>
@@ -1063,12 +1071,13 @@ const ChatWindow = ({
                                         <button
                                             type="button"
                                             onClick={startRecording}
-                                            className="bg-[#2a2a2e] hover:bg-[#3f3f46] text-white p-3 rounded-xl shadow-lg transition-transform active:scale-95 mb-1"
+                                            className="bg-[#2a2a2e] hover:bg-[#3f3f46] text-white p-3 rounded-full shadow-lg transition-transform active:scale-95 mb-1 flex-shrink-0 border border-[#3f3f46]"
                                             title="Record Voice Note"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                                <path d="M8.25 4.5a3.75 3.75 0 117.5 0v8.25a3.75 3.75 0 11-7.5 0V4.5z" />
-                                                <path d="M6 10.5a.75.75 0 01.75.75v1.5a5.25 5.25 0 1010.5 0v-1.5a.75.75 0 011.5 0v1.5a6.751 6.751 0 01-6 6.709v2.291h3a.75.75 0 010 1.5h-7.5a.75.75 0 010-1.5h3v-2.291a6.751 6.751 0 01-6-6.709v-1.5A.75.75 0 016 10.5z" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                                                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                                <line x1="12" y1="19" x2="12" y2="22" />
                                             </svg>
                                         </button>
                                     )}
@@ -1078,6 +1087,7 @@ const ChatWindow = ({
                     </>
                 )
             }
+
 
 
             {/* Modals */}
