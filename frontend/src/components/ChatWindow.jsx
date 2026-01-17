@@ -39,6 +39,8 @@ const ChatWindow = ({
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const mediaInputRef = useRef(null);
+    const footerRef = useRef(null);
+
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
 
@@ -80,6 +82,22 @@ const ChatWindow = ({
             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         }
     };
+
+    // Close menus on click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (footerRef.current && !footerRef.current.contains(event.target)) {
+                setShowEmojiPicker(false);
+                setShowRewriteMenu(false);
+                setIsAttachmentMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Status Logic
     const getStatusText = () => {
@@ -846,8 +864,8 @@ const ChatWindow = ({
                             </div>
                         )}
 
-                        <div className="p-4 relative z-40 mb-2">
-                            {/* [MODIFIED] Smart Replies - Floating Pills */}
+                        <div className={`p-3 md:p-4 bg-black/80 backdrop-blur-xl border-t border-[#27272a] relative transition-all duration-300 ${isRecording ? 'border-red-500/30' : ''}`} ref={footerRef}>
+                            {/* [MODIFIED] Smart Replies moved above */}
                             {smartReplies.length > 0 && (
                                 <div className="absolute bottom-full left-0 w-full px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar mask-gradient-x z-30">
                                     {smartReplies.map((reply, idx) => (
@@ -859,80 +877,7 @@ const ChatWindow = ({
                                             ✨ {reply}
                                         </button>
                                     ))}
-                                    <button
-                                        onClick={() => setSmartReplies([])}
-                                        className="p-2 bg-[#27272a]/90 backdrop-blur-md rounded-full border border-[#3f3f46] text-gray-400 hover:text-white hover:bg-red-500/20 hover:border-red-500/50 transition-colors shadow-lg"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                                        </svg>
-                                    </button>
                                 </div>
-                            )}
-
-                            {/* ... Input Form Content (Existing) ... */}
-                            {showEmojiPicker && (
-                                <div className="absolute bottom-20 left-4 mb-2 z-50 bg-[#18181b]/95 backdrop-blur-2xl border border-[#27272a] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 origin-bottom-left">
-                                    <div className="flex justify-between items-center p-3 bg-[#27272a]/50 border-b border-[#27272a]">
-                                        <span className="text-gray-200 text-xs font-bold pl-2">Pick an Emoji</span>
-                                        <button
-                                            onClick={() => setShowEmojiPicker(false)}
-                                            className="p-1.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" width={320} height={400} />
-                                </div>
-                            )}
-
-                            {/* Attachment Menu Popover */}
-                            {isAttachmentMenuOpen && (
-                                <div className="absolute bottom-[calc(100%+10px)] left-4 z-50 bg-[#18181b]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-[#27272a] flex flex-col w-60 overflow-hidden animate-in slide-in-from-bottom-5 zoom-in-95 origin-bottom-left p-1.5">
-                                    <button
-                                        onClick={() => mediaInputRef.current.click()}
-                                        className="p-3 text-left hover:bg-white/5 rounded-xl text-gray-200 hover:text-white flex items-center gap-3 transition-colors font-medium text-sm group"
-                                    >
-                                        <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500 group-hover:bg-blue-500/20 transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span>Photos & Videos</span>
-                                            <span className="text-[10px] text-gray-500">Share media files</span>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => fileInputRef.current.click()}
-                                        className="p-3 text-left hover:bg-white/5 rounded-xl text-gray-200 hover:text-white flex items-center gap-3 transition-colors font-medium text-sm group"
-                                    >
-                                        <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 group-hover:bg-purple-500/20 transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span>Document</span>
-                                            <span className="text-[10px] text-gray-500">Send files & pdfs</span>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => setShowCamera(true)}
-                                        className="p-3 text-left hover:bg-white/5 rounded-xl text-gray-200 hover:text-white flex items-center gap-3 transition-colors font-medium text-sm group"
-                                    >
-                                        <div className="p-2 rounded-lg bg-red-500/10 text-red-500 group-hover:bg-red-500/20 transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span>Camera</span>
-                                            <span className="text-[10px] text-gray-500">Take a photo</span>
-                                        </div>
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Close menu if clicking outside */}
-                            {isAttachmentMenuOpen && (
-                                <div className="fixed inset-0 z-10" onClick={() => setIsAttachmentMenuOpen(false)}></div>
                             )}
 
                             {isRecording ? (
@@ -947,7 +892,7 @@ const ChatWindow = ({
                                     </button>
                                 </div>
                             ) : (
-                                <form onSubmit={handleSend} className="flex items-end gap-2 relative z-20 w-full">
+                                <form onSubmit={handleSend} className="flex items-center gap-2 relative z-20 w-full">
                                     {/* Hidden Inputs */}
                                     <input
                                         type="file"
@@ -967,36 +912,84 @@ const ChatWindow = ({
                                     />
 
                                     {/* Attachment Button */}
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsAttachmentMenuOpen(!isAttachmentMenuOpen);
-                                            setShowEmojiPicker(false);
-                                        }}
-                                        className={`p-3 rounded-full transition-all duration-200 mb-1 flex-shrink-0 ${isAttachmentMenuOpen ? 'bg-white/10 text-white rotate-45' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-                                        title="Attach"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                                            <path d="M5 12h14" />
-                                            <path d="M12 5v14" />
-                                        </svg>
-                                    </button>
-
-                                    <div className="flex-1 bg-[#18181b] rounded-[24px] border border-[#27272a] focus-within:border-gray-500 transition-all flex items-end min-h-[50px] relative shadow-sm">
-
+                                    <div className="relative">
                                         <button
                                             type="button"
-                                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                            className={`p-3 text-gray-400 hover:text-yellow-400 transition-colors ${showEmojiPicker ? 'text-yellow-400' : ''}`}
-                                            title="Emoji"
+                                            onClick={() => {
+                                                setIsAttachmentMenuOpen(!isAttachmentMenuOpen);
+                                                setShowEmojiPicker(false);
+                                            }}
+                                            className={`p-3 rounded-full transition-all duration-200 flex-shrink-0 ${isAttachmentMenuOpen ? 'bg-white/10 text-white rotate-45' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                                            title="Attach"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                                                <circle cx="12" cy="12" r="10" />
-                                                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                                                <line x1="9" y1="9" x2="9.01" y2="9" />
-                                                <line x1="15" y1="9" x2="15.01" y2="9" />
+                                                <path d="M5 12h14" />
+                                                <path d="M12 5v14" />
                                             </svg>
                                         </button>
+
+                                        {/* Attachment Menu Popover - Anchored here properly */}
+                                        {isAttachmentMenuOpen && (
+                                            <div className="absolute bottom-full left-0 mb-2 z-50 bg-[#18181b]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-[#27272a] flex flex-col w-60 overflow-hidden animate-in slide-in-from-bottom-5 zoom-in-95 origin-bottom-left p-1.5">
+                                                <button
+                                                    onClick={() => mediaInputRef.current.click()}
+                                                    className="p-3 text-left hover:bg-white/5 rounded-xl text-gray-200 hover:text-white flex items-center gap-3 transition-colors font-medium text-sm group"
+                                                >
+                                                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500 group-hover:bg-blue-500/20 transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span>Photos & Videos</span>
+                                                    </div>
+                                                </button>
+                                                <button
+                                                    onClick={() => fileInputRef.current.click()}
+                                                    className="p-3 text-left hover:bg-white/5 rounded-xl text-gray-200 hover:text-white flex items-center gap-3 transition-colors font-medium text-sm group"
+                                                >
+                                                    <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 group-hover:bg-purple-500/20 transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span>Document</span>
+                                                    </div>
+                                                </button>
+                                                <button
+                                                    onClick={() => setShowCamera(true)}
+                                                    className="p-3 text-left hover:bg-white/5 rounded-xl text-gray-200 hover:text-white flex items-center gap-3 transition-colors font-medium text-sm group"
+                                                >
+                                                    <div className="p-2 rounded-lg bg-red-500/10 text-red-500 group-hover:bg-red-500/20 transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span>Camera</span>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex-1 bg-[#18181b] rounded-[24px] border border-[#27272a] focus-within:border-gray-500 transition-all flex items-center min-h-[50px] relative shadow-sm">
+                                        {/* Emoji Menu */}
+                                        <div className="relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                className={`p-3 text-gray-400 hover:text-yellow-400 transition-colors ${showEmojiPicker ? 'text-yellow-400' : ''}`}
+                                                title="Emoji"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                                                    <line x1="9" y1="9" x2="9.01" y2="9" />
+                                                    <line x1="15" y1="9" x2="15.01" y2="9" />
+                                                </svg>
+                                            </button>
+                                            {showEmojiPicker && (
+                                                <div className="absolute bottom-full left-0 mb-4 z-50 bg-[#18181b]/95 backdrop-blur-2xl border border-[#27272a] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 origin-bottom-left">
+                                                    <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" width={300} height={350} />
+                                                </div>
+                                            )}
+                                        </div>
 
                                         <textarea
                                             value={newMessage}
@@ -1012,14 +1005,14 @@ const ChatWindow = ({
                                                 }
                                             }}
                                             placeholder={selectedFiles.length > 0 ? "Add a caption..." : "Type a message..."}
-                                            className="flex-1 py-3.5 bg-transparent text-white focus:outline-none resize-none overflow-hidden placeholder-gray-500 font-medium leading-relaxed max-h-32 text-sm"
+                                            className="flex-1 py-3 bg-transparent text-white focus:outline-none resize-none overflow-hidden placeholder-gray-500 font-medium leading-relaxed max-h-32 text-sm"
                                             rows={1}
                                             disabled={isUploading}
                                             style={{ minHeight: '24px' }}
                                         />
 
                                         {/* Magic Wand (Rewrite) */}
-                                        <div className="relative mr-1 mb-1">
+                                        <div className="relative mr-1">
                                             <button
                                                 type="button"
                                                 onClick={() => setShowRewriteMenu(!showRewriteMenu)}
@@ -1030,13 +1023,12 @@ const ChatWindow = ({
                                                 {isRewriting ? (
                                                     <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                                                 ) : (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M9 3v4" /><path d="M3 5h4" /><path d="M3 9h4" /></svg>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M9 3v4" /><path d="M3 5h4" /><path d="M3 9h4" /></svg>
                                                 )}
                                             </button>
 
                                             {showRewriteMenu && (
                                                 <div className="absolute bottom-full right-0 mb-2 bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-2xl shadow-xl w-48 overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 p-1">
-                                                    <div className="px-3 py-2 border-b border-[#2a2a2e] text-[10px] uppercase tracking-widest font-bold text-gray-500">Rewrite Tone</div>
                                                     {[
                                                         { label: 'Professional', emoji: '💼' },
                                                         { label: 'Friendly', emoji: '😊' },
@@ -1060,7 +1052,7 @@ const ChatWindow = ({
                                     {newMessage.trim() || selectedFiles.length > 0 ? (
                                         <button
                                             type="submit"
-                                            className="bg-green-600 hover:bg-green-500 text-white p-3 rounded-full shadow-lg shadow-green-600/20 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mb-1 flex-shrink-0"
+                                            className="bg-green-600 hover:bg-green-500 text-white p-3 rounded-full shadow-lg shadow-green-600/20 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                                             disabled={isUploading}
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
@@ -1071,7 +1063,7 @@ const ChatWindow = ({
                                         <button
                                             type="button"
                                             onClick={startRecording}
-                                            className="bg-[#2a2a2e] hover:bg-[#3f3f46] text-white p-3 rounded-full shadow-lg transition-transform active:scale-95 mb-1 flex-shrink-0 border border-[#3f3f46]"
+                                            className="bg-[#2a2a2e] hover:bg-[#3f3f46] text-white p-3 rounded-full shadow-lg transition-transform active:scale-95 flex-shrink-0 border border-[#3f3f46]"
                                             title="Record Voice Note"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
@@ -1084,10 +1076,10 @@ const ChatWindow = ({
                                 </form>
                             )}
                         </div>
+
                     </>
                 )
             }
-
 
 
             {/* Modals */}
@@ -1121,10 +1113,10 @@ const ChatWindow = ({
                 )
             }
             {/* Group Call */}
-            {/* Group Call */}
-
         </div >
     );
 };
 
 export default ChatWindow;
+
+
