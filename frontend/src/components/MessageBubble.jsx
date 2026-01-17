@@ -47,22 +47,27 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         setContextMenu(null);
     };
 
-    if (message.messageType === 'system') {
-        let systemContent = message.content;
-        let isCallLog = false;
+    // Unified Message Parsing (Call Logs vs System vs Text)
+    let isCallLog = false;
+    let callLogData = null;
+    let systemContent = message.content;
 
-        try {
+    try {
+        if (message.content && (message.content.startsWith('{') || message.messageType === 'system')) {
             const parsed = JSON.parse(message.content);
             if (parsed.type === 'call_log') {
                 isCallLog = true;
-            } else {
-                systemContent = parsed.content || message.content;
+                callLogData = parsed;
+            } else if (parsed.content) {
+                systemContent = parsed.content;
             }
-        } catch (e) {
-            // Not JSON
         }
+    } catch (e) {
+        // Not JSON, treat as plain text
+    }
 
-        // Normal System Message
+    // PURE System Message (Not Call Log) -> Render as Pill
+    if (message.messageType === 'system' && !isCallLog) {
         return (
             <div className="flex justify-center my-3 animate-in fade-in zoom-in-95 duration-300">
                 <span className="bg-white/5 backdrop-blur-md text-gray-400 text-[10px] uppercase tracking-wider font-bold px-4 py-1.5 rounded-full border border-white/5 shadow-sm">
@@ -72,11 +77,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         );
     }
 
-    // Call Log Content Parser
-    let callLogData = null;
-    if (isCallLog) {
-        try { callLogData = JSON.parse(message.content); } catch (e) { }
-    }
+    // Call Logs & Regular Messages -> Render as Bubbles (Fallthrough)
 
     return (
         <div
