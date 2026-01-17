@@ -47,6 +47,18 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         setContextMenu(null);
     };
 
+    const handleCopy = () => {
+        if (message.content) {
+            navigator.clipboard.writeText(message.content);
+            setContextMenu(null);
+        }
+    };
+
+    const handleReply = () => {
+        // Future implementation or callback
+        setContextMenu(null);
+    };
+
     // Unified Message Parsing (Call Logs vs System vs Text)
     let isCallLog = false;
     let callLogData = null;
@@ -81,7 +93,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
     return (
         <div
-            className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-2 group relative`}
+            className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-1 group relative`}
             onMouseEnter={() => setShowActions(true)}
             onMouseLeave={() => setShowActions(false)}
             onContextMenu={handleContextMenu}
@@ -90,38 +102,50 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
             {contextMenu && (
                 <div
                     ref={menuRef}
-                    className="fixed bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-xl shadow-2xl z-50 py-1.5 flex flex-col min-w-[160px] animate-in fade-in zoom-in-95 origin-top-left"
+                    className="fixed bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-xl shadow-2xl z-50 py-1.5 flex flex-col min-w-[180px] animate-in fade-in zoom-in-95 origin-top-left overflow-hidden"
                     style={{ top: contextMenu.y, left: contextMenu.x }}
                 >
-                    {isOwn && !message.deletedForEveryone && (
+                    {/* Copy Option (Text Only) */}
+                    {(message.messageType === 'text' || message.content) && !isCallLog && (
+                        <button onClick={handleCopy} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-400"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                            Copy Text
+                        </button>
+                    )}
+
+                    {/* Edit Option (Own Text Only) */}
+                    {isOwn && !message.deletedForEveryone && message.messageType === 'text' && (
+                        <button onClick={() => { setIsEditing(true); setContextMenu(null); }} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-blue-400"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                            Edit Message
+                        </button>
+                    )}
+
+                    {/* Download Option */}
+                    {(message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio' || message.messageType === 'file') && (
+                        <button onClick={handleDownload} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
+                            Download
+                        </button>
+                    )}
+
+                    {/* Divider if we have delete options */}
+                    {!message.deletedForEveryone && <div className="h-px bg-white/5 my-1" />}
+
+                    {/* Delete Options */}
+                    {!message.deletedForEveryone && (
                         <>
-                            {/* Only Text is editable */}
-                            {message.messageType === 'text' && (
-                                <button onClick={() => { setIsEditing(true); setContextMenu(null); }} className="px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-700">
-                                    Edit
+                            {isOwn && (
+                                <button onClick={() => handleDelete(true)} className="px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-3 transition-colors font-medium">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                                    Delete for Everyone
                                 </button>
                             )}
-                            <button onClick={() => handleDelete(true)} className="px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700">
-                                Delete for Everyone
-                            </button>
-                            <button onClick={() => handleDelete(false)} className="px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700">
+                            <button onClick={() => handleDelete(false)} className="px-4 py-2.5 text-left text-sm text-gray-400 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
                                 Delete for Me
                             </button>
                         </>
-                    )}
-
-                    {!isOwn && !message.deletedForEveryone && (
-                        <button onClick={() => handleDelete(false)} className="px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700">
-                            Delete for Me
-                        </button>
-                    )}
-
-                    {/* Download option for media/files */}
-                    {(message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio' || message.messageType === 'file') && (
-                        <button onClick={handleDownload} className="px-4 py-2.5 text-left text-sm text-blue-400 hover:bg-white/5 transition-colors font-medium flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.965 3.129V2.75z" /><path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" /></svg>
-                            Download
-                        </button>
                     )}
                 </div>
             )}
@@ -140,7 +164,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
             {/* Bubble Container */}
             <div
-                className={`max-w-xs md:max-w-md shadow-sm relative group/bubble transition-all duration-200 flex flex-col 
+                className={`max-w-[75%] md:max-w-[60%] shadow-sm relative group/bubble transition-all duration-200 flex flex-col 
                     ${isOwn
                         ? 'bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 text-white rounded-[1.25rem] rounded-tr-sm shadow-indigo-500/20 shadow-lg'
                         : 'bg-[#18181b]/90 backdrop-blur-md border border-white/5 text-gray-100 rounded-[1.25rem] rounded-tl-sm shadow-md'
