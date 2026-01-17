@@ -23,7 +23,21 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
     const handleContextMenu = (e) => {
         e.preventDefault();
         if (message.deletedForEveryone) return;
-        setContextMenu({ x: e.clientX, y: e.clientY });
+
+        // Smart positioning to prevent overflow
+        let x = e.clientX;
+        let y = e.clientY;
+        const menuWidth = 200; // Approx menu width
+        const menuHeight = 200; // Approx menu height
+
+        if (x + menuWidth > window.innerWidth) {
+            x = window.innerWidth - menuWidth - 20; // Shift left
+        }
+        if (y + menuHeight > window.innerHeight) {
+            y = window.innerHeight - menuHeight - 20; // Shift up
+        }
+
+        setContextMenu({ x, y });
     };
 
     const handleSaveEdit = () => {
@@ -164,7 +178,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
             {/* Bubble Container */}
             <div
-                className={`max-w-[75%] md:max-w-[60%] shadow-sm relative group/bubble transition-all duration-200 flex flex-col 
+                className={`max-w-[75%] md:max-w-[60%] min-w-[120px] shadow-sm relative group/bubble transition-all duration-200 flex flex-col 
                     ${isOwn
                         ? 'bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 text-white rounded-[1.25rem] rounded-tr-sm shadow-indigo-500/20 shadow-lg'
                         : 'bg-[#18181b]/90 backdrop-blur-md border border-white/5 text-gray-100 rounded-[1.25rem] rounded-tl-sm shadow-md'
