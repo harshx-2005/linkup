@@ -145,7 +145,7 @@ const VideoPlayer = ({ src, poster, autoPlay = false, className = "", isPreview 
         if (isPlaying) {
             controlsTimeoutRef.current = setTimeout(() => {
                 setShowControls(false);
-            }, 2500);
+            }, 2000);
         }
     };
 

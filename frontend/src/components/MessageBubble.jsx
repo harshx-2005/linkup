@@ -150,11 +150,11 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                     e.stopPropagation();
                     handleContextMenu(e);
                 }}
-                className={`absolute top-2 p-1.5 rounded-full bg-black/40 text-white/70 hover:text-white hover:bg-black/60 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 ${isOwn ? '-left-10' : '-right-10'}`}
-                title="More Options"
+                className={`absolute top-0 bottom-auto p-1 rounded-full bg-black/20 text-white/50 hover:text-white hover:bg-black/40 transition-all duration-200 z-50 ${isOwn ? 'left-0 -translate-x-full mr-2' : 'right-0 translate-x-full ml-2'} opacity-0 group-hover:opacity-100 flex items-center justify-center`}
+            // Removed title to prevent browser tooltip
             >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                    <path fillRule="evenodd" d="M10.5 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" clipRule="evenodd" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                 </svg>
             </button>
             {/* Custom Context Menu */}
