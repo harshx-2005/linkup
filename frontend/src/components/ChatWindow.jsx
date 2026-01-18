@@ -468,8 +468,8 @@ const ChatWindow = ({
         }
 
         // 2. Send Text Message (Only if NO files were sent, to avoid double text)
-        // Since we clear newMessage in the file loop, this check handles it.
-        if (newMessage.trim()) {
+        // [FIX] We check selectedFiles.length === 0 because if files were sent, the caption was already attached.
+        if (newMessage.trim() && selectedFiles.length === 0) {
             await onSendMessage(newMessage); // Use await to ensure order if socket is fast
             setNewMessage('');
         }
@@ -880,9 +880,9 @@ const ChatWindow = ({
                         )}
 
                         <div className={`p-3 md:p-4 bg-black/80 backdrop-blur-xl border-t border-[#27272a] relative transition-all duration-300 ${isRecording ? 'border-red-500/30' : ''}`} ref={footerRef}>
-                            {/* [MODIFIED] Smart Replies moved above */}
+                            {/* [MODIFIED] Smart Replies moved above relative to input */}
                             {smartReplies.length > 0 && (
-                                <div className="absolute bottom-full left-0 w-full px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar mask-gradient-x z-30">
+                                <div className="w-full px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar mask-gradient-x animate-fade-in-up">
                                     {smartReplies.map((reply, idx) => (
                                         <button
                                             key={idx}
@@ -892,6 +892,14 @@ const ChatWindow = ({
                                             ✨ {reply}
                                         </button>
                                     ))}
+                                    <button
+                                        onClick={() => setSmartReplies([])}
+                                        className="p-2 bg-[#27272a]/90 backdrop-blur-md rounded-full border border-[#3f3f46] text-gray-400 hover:text-white hover:bg-red-500/20 hover:border-red-500/50 transition-colors shadow-lg"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                                        </svg>
+                                    </button>
                                 </div>
                             )}
 
@@ -1038,7 +1046,9 @@ const ChatWindow = ({
                                                 {isRewriting ? (
                                                     <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                                                 ) : (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M9 3v4" /><path d="M3 5h4" /><path d="M3 9h4" /></svg>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                                                    </svg>
                                                 )}
                                             </button>
 
