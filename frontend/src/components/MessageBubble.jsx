@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import VideoPlayer from './VideoPlayer';
+import CustomAudioPlayer from './CustomAudioPlayer'; // Import custom player
 import axios from 'axios';
 
 const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward, onReply, onReplyClick, id }) => {
@@ -14,6 +15,11 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
     const [isTranslating, setIsTranslating] = useState(false);
     const [isTranscribing, setIsTranscribing] = useState(false);
     const [showTranslation, setShowTranslation] = useState(false);
+    const [targetLang, setTargetLang] = useState('English');
+    const [showLangMenu, setShowLangMenu] = useState(false);
+
+    // Languages
+    const languages = ['English', 'Hindi', 'Spanish', 'French', 'German', 'Marathi', 'Japanese'];
 
     // Context Menu State
     const [contextMenu, setContextMenu] = useState(null); // { x, y }
@@ -108,19 +114,12 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         setContextMenu(null);
     };
 
-    const handleTranslate = async () => {
-        if (translation) {
-            setShowTranslation(!showTranslation);
-            setContextMenu(null);
-            return;
-        }
-
+    const fetchTranslation = async (lang = targetLang) => {
         setIsTranslating(true);
-        setContextMenu(null);
         try {
             const token = localStorage.getItem('token');
             const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/messages/translate`,
-                { text: message.content, targetLang: 'English' },
+                { text: message.content, targetLang: lang },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setTranslation(res.data.translated);
@@ -130,6 +129,19 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         } finally {
             setIsTranslating(false);
         }
+    };
+
+    const handleTranslate = async () => {
+        setContextMenu(null);
+        if (translation && showTranslation) {
+            setShowTranslation(false);
+            return;
+        }
+        if (translation && !showTranslation) {
+            setShowTranslation(true);
+            return;
+        }
+        await fetchTranslation(targetLang);
     };
 
     const handleTranscribe = async () => {
@@ -437,7 +449,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                         )}
                                         {message.messageType === 'audio' && (
                                             <div className="p-2 flex flex-col gap-2">
-                                                <audio src={message.attachmentUrl} controls className="w-full h-10 rounded-lg custom-audio" />
+                                                <CustomAudioPlayer src={message.attachmentUrl} />
 
                                                 {/* Transcription UI */}
                                                 {/* Transcription UI */}
