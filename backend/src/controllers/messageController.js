@@ -119,6 +119,7 @@ const sendMessage = async (req, res) => {
             attachmentUrl: (attachmentUrl && attachmentUrl.includes('pollinations.ai'))
                 ? `${attachmentUrl}${attachmentUrl.includes('?') ? '&' : '?'}seed=${Date.now()}`
                 : attachmentUrl,
+            replyToId,
         });
 
         // Fetch message with sender details

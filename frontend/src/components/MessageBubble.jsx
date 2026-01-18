@@ -42,29 +42,25 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
         if (triggerButton) {
             const rect = triggerButton.getBoundingClientRect();
-            // Anchor to the bottom-left of the button by default, or bottom-right
-            // Let's align the Top-Right of the menu to the Bottom-Right of the button
+            // WhatsApp Web Style: Align right edge of menu to right edge of button (approximately)
             x = rect.right - menuWidth;
             y = rect.bottom + 5;
 
-            // Collision Detection for Button Anchor
-            // If goes off left edge, align to left of button
+            // Adjust if goes off screen
             if (x < 10) x = rect.left;
-
-            // If goes off bottom edge, flip to top
-            if (y + menuHeight > window.innerHeight) {
-                y = rect.top - menuHeight - 5;
-            }
         } else {
-            // Mouse/Touch Context Menu (Right Click)
+            // Mouse Context Menu (Right Click)
             // Smart positioning: Flip alignment if near edges
             if (x > window.innerWidth / 2) x = x - menuWidth;
             if (y > window.innerHeight / 2) y = y - menuHeight;
 
-            // Padding
-            x = Math.max(10, Math.min(x, window.innerWidth - menuWidth - 10));
-            y = Math.max(10, Math.min(y, window.innerHeight - menuHeight - 10));
+            // Offset slightly
+            y += 5;
         }
+
+        // Global Boundary Checks
+        x = Math.max(10, Math.min(x, window.innerWidth - menuWidth - 10));
+        y = Math.max(10, Math.min(y, window.innerHeight - menuHeight - 10));
 
         setContextMenu({ x, y });
     };
@@ -152,7 +148,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                     <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} />
                     <div
                         ref={menuRef}
-                        className="fixed bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-xl shadow-2xl z-50 py-1.5 flex flex-col min-w-[180px] animate-in fade-in zoom-in-95 origin-top-left overflow-hidden"
+                        className="fixed bg-[#233138] border border-[#374248] rounded-lg shadow-2xl z-50 py-2 flex flex-col min-w-[200px] animate-in fade-in zoom-in-95 origin-top-right overflow-hidden"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
                         {/* Reply Option */}
