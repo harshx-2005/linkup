@@ -319,7 +319,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
             {/* Bubble Container */}
             <div
-                className={`max-w-[75%] md:max-w-[60%] min-w-[120px] shadow-sm relative group/bubble transition-all duration-200 flex flex-col 
+                className={`max-w-[70%] md:max-w-[60%] min-w-[100px] shadow-sm relative group/bubble transition-all duration-200 flex flex-col 
                     ${isOwn
                         ? 'bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 text-white rounded-[1.25rem] rounded-tr-sm shadow-indigo-500/20 shadow-lg'
                         : 'bg-[#18181b]/90 backdrop-blur-md border border-white/5 text-gray-100 rounded-[1.25rem] rounded-tl-sm shadow-md'
@@ -401,7 +401,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                     </div>
                 ) : (
                     /* Standard Message Content */
-                    <div className={`${(message.messageType === 'image' || message.messageType === 'video') ? 'p-1' : 'px-4 py-2'}`}>
+                    <div className={`${(message.messageType === 'image' || message.messageType === 'video') ? 'p-1' : 'px-3 py-1.5'}`}>
                         {!isOwn && isGroup && message.User?.name && !message.deletedForEveryone && (
                             <p className="text-xs text-blue-400 font-bold tracking-wide px-3 pt-2 pb-0.5 ml-1">{message.User.name}</p>
                         )}
@@ -507,97 +507,98 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                     </div>
                                 )}
 
-                                {/* Text Content (Caption or Message) */}
                                 {/* 
                             Logic: 
-                            1. If it's pure text, render it.
-                            2. If it's a file, we displayed name above, but if there's EXTRA text, show it.
-                            3. If it's image/video, display content as caption.
-                            4. If system/call_log, handle that.
+                            1. Pure text -> Render
+                            2. File -> Render if extra text
+                            3. Audio/Image/Video -> Render as Caption
+                            4. EXCEPTION: If Audio and content is "Voice Message" or empty, DO NOT RENDER.
                          */}
-                                {((message.content && message.messageType !== 'file') || (message.content && message.messageType === 'file' && message.content !== 'File: ' + message.name)) && (
-                                    <div className={`px-4 py-2 ${message.attachmentUrl ? 'pt-1' : ''} relative z-10 break-words text-[15px] leading-relaxed`}>
-                                        {(message.messageType === 'text' || message.messageType === 'system' || message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio') && (<>
-                                            {(() => {
-                                                let parsed = null;
-                                                // JSON System checks (Call logs)
-                                                if (message.messageType === 'system' || (message.content.startsWith('{') && message.content.includes('call_log'))) {
-                                                    try { parsed = JSON.parse(message.content); } catch (e) { }
-                                                }
+                                {((message.content && message.messageType !== 'file' && message.messageType !== 'audio') ||
+                                    (message.content && message.messageType === 'file' && message.content !== 'File: ' + message.name) ||
+                                    (message.messageType === 'audio' && message.content && message.content !== 'Voice Message' && message.content !== 'Audio Message')) && (
+                                        <div className={`px-4 py-2 ${message.attachmentUrl ? 'pt-1' : ''} relative z-10 break-words text-[15px] leading-relaxed`}>
+                                            {(message.messageType === 'text' || message.messageType === 'system' || message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio') && (<>
+                                                {(() => {
+                                                    let parsed = null;
+                                                    // JSON System checks (Call logs)
+                                                    if (message.messageType === 'system' || (message.content.startsWith('{') && message.content.includes('call_log'))) {
+                                                        try { parsed = JSON.parse(message.content); } catch (e) { }
+                                                    }
 
-                                                if (parsed && parsed.type === 'call_log') {
-                                                    const isMissed = parsed.status === 'missed' || parsed.status === 'declined';
-                                                    const isIncoming = !isOwn;
-                                                    const isVideo = parsed.isVideo;
+                                                    if (parsed && parsed.type === 'call_log') {
+                                                        const isMissed = parsed.status === 'missed' || parsed.status === 'declined';
+                                                        const isIncoming = !isOwn;
+                                                        const isVideo = parsed.isVideo;
+                                                        return (
+                                                            <div className="flex items-center gap-3 min-w-[180px] py-1">
+                                                                <div className={`p-2 rounded-full ${isMissed ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
+                                                                    {isVideo ? (
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                                                                    ) : (
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                                                    )}
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-bold text-sm">{isVideo ? 'Video Call' : 'Voice Call'}</p>
+                                                                    <p className="text-xs opacity-70">{parsed.duration || (isMissed ? 'Missed' : 'Ended')}</p>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    // Normal Text
+                                                    if (message.messageType === 'system') return null;
+
+                                                    // Skip rendering name if it's already shown in header (for AI mainly)
+                                                    // or strictly prevent "LinkUp AI" inside bubble content if backend sends it.
+                                                    // Actually the user said "LinkUp AI is twice name there at senders name".
+                                                    // So it's likely the header name + content name.
+                                                    // The header name logic is above (line 228).
+
                                                     return (
-                                                        <div className="flex items-center gap-3 min-w-[180px] py-1">
-                                                            <div className={`p-2 rounded-full ${isMissed ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
-                                                                {isVideo ? (
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                                                                ) : (
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                                                )}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-bold text-sm">{isVideo ? 'Video Call' : 'Voice Call'}</p>
-                                                                <p className="text-xs opacity-70">{parsed.duration || (isMissed ? 'Missed' : 'Ended')}</p>
-                                                            </div>
-                                                        </div>
+                                                        <span className="whitespace-pre-wrap">
+                                                            {message.content.split(' ').map((word, index) => {
+                                                                if (word.startsWith('@')) {
+                                                                    return <span key={index} className="bg-blue-500/20 text-blue-300 px-1 rounded font-medium">{word} </span>;
+                                                                }
+                                                                if (word.match(/^https?:\/\//)) {
+                                                                    return <a key={index} href={word} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline decoration-blue-300/50 break-all">{word} </a>;
+                                                                }
+                                                                return word + ' ';
+                                                            })}
+                                                        </span>
                                                     );
-                                                }
+                                                })()}
 
-                                                // Normal Text
-                                                if (message.messageType === 'system') return null;
-
-                                                // Skip rendering name if it's already shown in header (for AI mainly)
-                                                // or strictly prevent "LinkUp AI" inside bubble content if backend sends it.
-                                                // Actually the user said "LinkUp AI is twice name there at senders name".
-                                                // So it's likely the header name + content name.
-                                                // The header name logic is above (line 228).
-
-                                                return (
-                                                    <span className="whitespace-pre-wrap">
-                                                        {message.content.split(' ').map((word, index) => {
-                                                            if (word.startsWith('@')) {
-                                                                return <span key={index} className="bg-blue-500/20 text-blue-300 px-1 rounded font-medium">{word} </span>;
-                                                            }
-                                                            if (word.match(/^https?:\/\//)) {
-                                                                return <a key={index} href={word} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline decoration-blue-300/50 break-all">{word} </a>;
-                                                            }
-                                                            return word + ' ';
-                                                        })}
-                                                    </span>
-                                                );
-                                            })()}
-
-                                            {/* Translation UI */}
-                                            {showTranslation && (
-                                                <div className="mt-3 relative">
-                                                    <div className="absolute -top-3 left-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-[#1f2937]"></div>
-                                                    <div className="bg-[#1f2937] rounded-lg p-3 shadow-lg border border-yellow-500/20">
-                                                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                                            <div className="p-1 bg-yellow-500/10 rounded text-yellow-400">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 5-5 5 5"></path><path d="M12 18v-5"></path><path d="m5 16 6-6 6 6"></path><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"></path><path d="M2 12h20"></path></svg>
+                                                {/* Translation UI */}
+                                                {showTranslation && (
+                                                    <div className="mt-3 relative">
+                                                        <div className="absolute -top-3 left-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-[#1f2937]"></div>
+                                                        <div className="bg-[#1f2937] rounded-lg p-3 shadow-lg border border-yellow-500/20">
+                                                            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                                                                <div className="p-1 bg-yellow-500/10 rounded text-yellow-400">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 5-5 5 5"></path><path d="M12 18v-5"></path><path d="m5 16 6-6 6 6"></path><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"></path><path d="M2 12h20"></path></svg>
+                                                                </div>
+                                                                <span className="text-[10px] uppercase font-bold text-yellow-500/90 tracking-wider">English Translation</span>
                                                             </div>
-                                                            <span className="text-[10px] uppercase font-bold text-yellow-500/90 tracking-wider">English Translation</span>
+
+                                                            {isTranslating ? (
+                                                                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                                                                    <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                                                                    Translating...
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-gray-100 text-[14px] leading-relaxed animate-in fade-in slide-in-from-top-1">
+                                                                    {translation}
+                                                                </p>
+                                                            )}
                                                         </div>
-
-                                                        {isTranslating ? (
-                                                            <div className="flex items-center gap-2 text-gray-400 text-sm">
-                                                                <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
-                                                                Translating...
-                                                            </div>
-                                                        ) : (
-                                                            <p className="text-gray-100 text-[14px] leading-relaxed animate-in fade-in slide-in-from-top-1">
-                                                                {translation}
-                                                            </p>
-                                                        )}
                                                     </div>
-                                                </div>
-                                            )}
-                                        </>)}
-                                    </div>
-                                )}
+                                                )}
+                                            </>)}
+                                        </div>
+                                    )}
                             </>
                         )}
 
