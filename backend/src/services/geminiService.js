@@ -238,7 +238,10 @@ const rewriteMessage = async (text, tone) => {
 const translateText = async (text, targetLanguage = 'English') => {
     try {
         const prompt = `
-        Translate the following text to ${targetLanguage}.
+        Translate the meaning of the following text to ${targetLanguage} (standard English).
+        Do NOT transliterate (do not write the original sounds in English characters).
+        If the text is already in English, return it as is but correct any grammar.
+        
         Text: "${text}"
         
         Output ONLY the translated text. No preamble.

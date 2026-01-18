@@ -440,27 +440,40 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                                 <audio src={message.attachmentUrl} controls className="w-full h-10 rounded-lg custom-audio" />
 
                                                 {/* Transcription UI */}
+                                                {/* Transcription UI */}
                                                 {!transcription && !isTranscribing && (
                                                     <button
                                                         onClick={handleTranscribe}
-                                                        className="self-start text-[11px] font-bold text-gray-300 bg-white/10 hover:bg-white/20 px-2 py-1 rounded flex items-center gap-1 transition"
+                                                        className="mt-2 text-[11px] font-bold text-gray-300 bg-[#374151] hover:bg-[#4b5563] px-3 py-1.5 rounded-full flex items-center gap-2 transition shadow-sm border border-white/5"
                                                     >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                                                        Transcribe
+                                                        <div className="p-0.5 bg-green-500/20 rounded-full text-green-400">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                                                        </div>
+                                                        Transcribe Audio
                                                     </button>
                                                 )}
 
                                                 {isTranscribing && (
-                                                    <div className="text-[11px] text-gray-400 animate-pulse flex items-center gap-2">
-                                                        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                                                        Transcribing...
+                                                    <div className="mt-2 bg-[#374151] rounded-lg p-2.5 flex items-center gap-3 animate-pulse border border-green-500/20 w-fit">
+                                                        <div className="w-3.5 h-3.5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                                                        <span className="text-xs text-green-400 font-medium tracking-wide">Transcribing...</span>
                                                     </div>
                                                 )}
 
                                                 {transcription && (
-                                                    <div className="bg-black/20 p-2 rounded text-[13px] text-gray-200 border-l-2 border-green-500">
-                                                        <p className="font-bold text-[10px] text-green-400 mb-0.5 uppercase">Transcription</p>
-                                                        {transcription}
+                                                    <div className="mt-3 relative max-w-[280px]">
+                                                        <div className="absolute -top-1.5 left-4 w-3 h-3 bg-[#1f2937] rotate-45 border-t border-l border-green-500/30"></div>
+                                                        <div className="bg-[#1f2937] rounded-lg p-3 shadow-lg border border-green-500/30 relative z-10">
+                                                            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                                                                <div className="p-1 bg-green-500/10 rounded text-green-400">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                                                </div>
+                                                                <span className="text-[10px] uppercase font-bold text-green-400 tracking-wider">Transcription</span>
+                                                            </div>
+                                                            <p className="text-gray-200 text-[13px] leading-relaxed italic">
+                                                                "{transcription}"
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -557,21 +570,27 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
                                             {/* Translation UI */}
                                             {showTranslation && (
-                                                <div className="mt-2 pt-2 border-t border-white/10 text-sm">
-                                                    <div className="flex items-center gap-1.5 mb-1 text-xs font-bold text-yellow-400/90 uppercase tracking-wide">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 5-5 5 5"></path><path d="M12 18v-5"></path><path d="m5 16 6-6 6 6"></path><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"></path><path d="M2 12h20"></path></svg>
-                                                        Translation
-                                                    </div>
-                                                    {isTranslating ? (
-                                                        <div className="flex items-center gap-2 text-gray-400 italic">
-                                                            <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                                                            Translating...
+                                                <div className="mt-3 relative">
+                                                    <div className="absolute -top-3 left-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-[#1f2937]"></div>
+                                                    <div className="bg-[#1f2937] rounded-lg p-3 shadow-lg border border-yellow-500/20">
+                                                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                                                            <div className="p-1 bg-yellow-500/10 rounded text-yellow-400">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 5-5 5 5"></path><path d="M12 18v-5"></path><path d="m5 16 6-6 6 6"></path><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"></path><path d="M2 12h20"></path></svg>
+                                                            </div>
+                                                            <span className="text-[10px] uppercase font-bold text-yellow-500/90 tracking-wider">English Translation</span>
                                                         </div>
-                                                    ) : (
-                                                        <p className="text-gray-100/90 leading-relaxed italic animate-in fade-in">
-                                                            {translation}
-                                                        </p>
-                                                    )}
+
+                                                        {isTranslating ? (
+                                                            <div className="flex items-center gap-2 text-gray-400 text-sm">
+                                                                <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                                                                Translating...
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-gray-100 text-[14px] leading-relaxed animate-in fade-in slide-in-from-top-1">
+                                                                {translation}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )}
                                         </>)}
