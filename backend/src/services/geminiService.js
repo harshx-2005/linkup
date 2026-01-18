@@ -238,13 +238,18 @@ const rewriteMessage = async (text, tone) => {
 const translateText = async (text, targetLanguage = 'English') => {
     try {
         const prompt = `
-        Translate the meaning of the following text to ${targetLanguage}.
-        Do NOT transliterate (do not write the original sounds in English characters).
-        If the target is English and the text is already in English, return it as is but correct any grammar.
+        You are a highly capable multi-language translator. 
+        Your task is to translate the following text into ${targetLanguage} (Standard ${targetLanguage}).
         
-        Text: "${text}"
+        Rules:
+        1. **Detect Source Language**: The text might be in English, another standard language, or a **transliterated** form (e.g., "Kay kartoy" which is Marathi for "What are you doing", or "Kaisa hai" which is Hindi).
+        2. **Handle Transliteration**: If the text is Romanized/Transliterated (e.g., Hindi/Marathi/Spanish written in English script), IDENTIFY the underlying language and translate its *meaning* to ${targetLanguage}. Do NOT interpret it as English phonetic nonsense (e.g. do not translate "Kay kartoy" as "Key card toy").
+        3. **Preserve Nuance**: If the text is slang, informal, or "text-speak", translate the *intended meaning* naturally.
+        4. **Already Target Language**: If the text is already in ${targetLanguage}, return it as-is, correcting only major grammar errors.
         
-        Output ONLY the translated text. No preamble.
+        Text to Translate: "${text}"
+        
+        Return ONLY the final translated text. No explanations, no "The translation is:", just the text.
         `;
 
         const payload = {
