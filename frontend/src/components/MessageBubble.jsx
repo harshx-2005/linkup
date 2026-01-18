@@ -117,8 +117,21 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
             className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-1 group relative`}
             onMouseEnter={() => setShowActions(true)}
             onMouseLeave={() => setShowActions(false)}
-            onContextMenu={handleContextMenu}
+            onContextMenu={(e) => e.preventDefault()}
         >
+            {/* Visual Context Menu Trigger (Three Dots) - Visible on Hover */}
+            <button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleContextMenu(e);
+                }}
+                className={`absolute top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 text-gray-300 opacity-0 group-hover:opacity-100 transition-all hover:bg-black/60 z-10 ${isOwn ? '-left-8' : '-right-8'}`}
+                title="More Options"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                    <path fillRule="evenodd" d="M10.5 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" clipRule="evenodd" />
+                </svg>
+            </button>
             {/* Custom Context Menu */}
             {contextMenu && (
                 <>
@@ -147,7 +160,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
                         {/* Forward Option */}
                         <button onClick={() => { onForward && onForward(message); setContextMenu(null); }} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400 rotate-45"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                             Forward
                         </button>
 
