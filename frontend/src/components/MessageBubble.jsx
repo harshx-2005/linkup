@@ -128,7 +128,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                     e.stopPropagation();
                     handleContextMenu(e);
                 }}
-                className={`absolute top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 text-gray-300 opacity-0 group-hover:opacity-100 transition-all hover:bg-black/60 z-10 ${isOwn ? '-left-8' : '-right-8'}`}
+                className={`absolute top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/60 text-white opacity-40 group-hover:opacity-100 transition-all hover:bg-black/80 z-10 shadow-lg ${isOwn ? '-left-8' : '-right-8'}`}
                 title="More Options"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">

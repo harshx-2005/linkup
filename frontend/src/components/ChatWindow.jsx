@@ -1188,7 +1188,7 @@ const ChatWindow = ({
                             try {
                                 const token = localStorage.getItem('token');
                                 await Promise.all(selectedChatIds.map(chatId =>
-                                    axios.post('/api/messages', {
+                                    axios.post('/api/messages/send', {
                                         conversationId: chatId,
                                         content: msg.content,
                                         messageType: msg.messageType,
