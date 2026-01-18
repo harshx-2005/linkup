@@ -31,14 +31,28 @@ const ImageLightbox = ({ imageUrl, onClose }) => {
                     &times;
                 </button>
 
-                <a
-                    href={imageUrl}
-                    download={`image-${Date.now()}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute -bottom-10 right-0 text-white hover:text-blue-400 text-sm flex items-center gap-1"
+                <button
+                    onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                            const response = await fetch(imageUrl);
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = url;
+                            a.download = `image-${Date.now()}`;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        } catch (err) {
+                            console.error('Download failed', err);
+                        }
+                    }}
+                    className="absolute -bottom-10 right-0 text-white hover:text-blue-400 text-sm flex items-center gap-1 font-bold bg-black/50 px-3 py-1 rounded-full backdrop-blur-md"
                 >
                     ⬇ Download
-                </a>
+                </button>
             </div>
         </div>
     );

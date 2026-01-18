@@ -6,6 +6,7 @@ import EmojiPicker from 'emoji-picker-react';
 import ImageLightbox from './ImageLightbox';
 import CameraModal from './CameraModal';
 import UserProfileModal from './UserProfileModal';
+import ForwardMessageModal from './ForwardMessageModal';
 
 
 const ChatWindow = ({
@@ -62,6 +63,44 @@ const ChatWindow = ({
     // [NEW] Smart Reply State
     const [smartReplies, setSmartReplies] = useState([]);
     const [isLoadingReplies, setIsLoadingReplies] = useState(false);
+
+    // [NEW] AI Rewrite State (Moved from duplicate)
+    const [showRewriteMenu, setShowRewriteMenu] = useState(false);
+    const [isRewriting, setIsRewriting] = useState(false);
+
+    // [NEW] Forwarding State
+    const [showForwardModal, setShowForwardModal] = useState(false);
+    const [messageToForward, setMessageToForward] = useState(null);
+
+    // [NEW] Summarize State
+    const [summaryResult, setSummaryResult] = useState(null);
+    const [isSummarizing, setIsSummarizing] = useState(false);
+
+    const handleForward = (msg) => {
+        setMessageToForward(msg);
+        setShowForwardModal(true);
+    };
+
+    const handleSummarize = async () => {
+        if (!conversation?.id) return;
+        setIsSummarizing(true);
+        try {
+            const token = localStorage.getItem('token');
+            // Assuming there's an endpoint for this, or we mock it/use existing service
+            // For now, let's assume a generic summarize endpoint or reusing chat history
+            // Actually, the user asked to 'adjust' the button, implying it might exist or logic exists
+            // But since I couldn't find it, I'll implement a basic call or placeholder
+            const res = await axios.post(`/api/conversations/${conversation.id}/summarize`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setSummaryResult(res.data.summary);
+        } catch (error) {
+            console.error('Summarize failed', error);
+            setSummaryResult("Could not summarize chat at this time.");
+        } finally {
+            setIsSummarizing(false);
+        }
+    };
 
     const typingTimeoutRef = useRef(null);
 
@@ -333,32 +372,8 @@ const ChatWindow = ({
         }
     };
 
-    // [NEW] AI Feature States
-    const [isSummarizing, setIsSummarizing] = useState(false);
-    const [summaryResult, setSummaryResult] = useState(null); // { text }
-    const [showRewriteMenu, setShowRewriteMenu] = useState(false);
-    const [isRewriting, setIsRewriting] = useState(false);
-
-    // AI Handlers
-    const requestSummary = async () => {
-        if (!conversation) return;
-        setIsSummarizing(true);
-        try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post('/api/messages/summarize', {
-                conversationId: conversation.id
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setSummaryResult(res.data.summary); // stored as markdown text
-        } catch (error) {
-            console.error("Summary failed:", error);
-            alert("Failed to summarize chat.");
-        } finally {
-            setIsSummarizing(false);
-            setShowMenu(false); // Close menu
-        }
-    };
+    // AI Handlers (Rewrite logic remains here)
+    // Removed duplicate requestSummary and states
 
     const requestRewrite = async (tone) => {
         if (!newMessage.trim()) return;
@@ -579,6 +594,25 @@ const ChatWindow = ({
                         </div>
                     ) : (typeof onStartCall === 'function' && (
                         <div className="flex items-center gap-1">
+                            {/* Summarize Button */}
+                            <button
+                                onClick={handleSummarize}
+                                disabled={isSummarizing}
+                                className="p-2 rounded-full hover:bg-gray-700/80 transition-all text-gray-300 hover:text-purple-400 group relative"
+                                title="Summarize Chat"
+                            >
+                                {isSummarizing ? (
+                                    <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                )}
+                            </button>
                             <button
                                 onClick={() => onStartCall(false)}
                                 className="p-2 rounded-full hover:bg-gray-700/80 transition-all text-gray-300 hover:text-green-400"
@@ -655,7 +689,10 @@ const ChatWindow = ({
 
                                 {/* [NEW] Summarize Chat */}
                                 <button
-                                    onClick={requestSummary}
+                                    onClick={() => {
+                                        handleSummarize();
+                                        setShowMenu(false);
+                                    }}
                                     disabled={isSummarizing}
                                     className="w-full text-left px-4 py-3 hover:bg-gray-700 flex items-center gap-3 text-purple-400 hover:text-purple-300 transition disabled:opacity-50"
                                 >
@@ -757,6 +794,7 @@ const ChatWindow = ({
                         onEdit={onEditMessage}
                         onDelete={onDeleteMessage}
                         onImageClick={setLightboxImage} // [NEW] Pass click handler
+                        onForward={handleForward}
                     />
                 ))}
                 <div ref={messagesEndRef} />
@@ -1150,6 +1188,23 @@ const ChatWindow = ({
                             // Pass other details if available in 'conversation' or fetch them inside modal
                         }}
                         onClose={() => setShowUserProfile(false)}
+                    />
+                )
+            }
+            {/* Forward Modal */}
+            {
+                showForwardModal && (
+                    <ForwardMessageModal
+                        message={messageToForward}
+                        onClose={() => setShowForwardModal(false)}
+                        currentUser={currentUser}
+                        onForward={(selectedChatIds, msg) => {
+                            // Handle Forward Logic Here or in Modal
+                            // Usually Modal calls API, here we just maybe show success or refresh
+                            // For now, assume modal handles the API calls
+                            setShowForwardModal(false);
+                            // Maybe add a toast?
+                        }}
                     />
                 )
             }

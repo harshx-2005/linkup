@@ -121,61 +121,81 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         >
             {/* Custom Context Menu */}
             {contextMenu && (
-                <div
-                    ref={menuRef}
-                    className="fixed bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-xl shadow-2xl z-50 py-1.5 flex flex-col min-w-[180px] animate-in fade-in zoom-in-95 origin-top-left overflow-hidden"
-                    style={{ top: contextMenu.y, left: contextMenu.x }}
-                >
-                    {/* Copy Option (Text Only) */}
-                    {(message.messageType === 'text' || message.content) && !isCallLog && (
-                        <button onClick={handleCopy} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-400"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                            Copy Text
-                        </button>
-                    )}
-
-                    {/* Edit Option (Own Text Only) */}
-                    {isOwn && !message.deletedForEveryone && message.messageType === 'text' && (
-                        <button onClick={() => { setIsEditing(true); setContextMenu(null); }} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-blue-400"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
-                            Edit Message
-                        </button>
-
-                    )}
-
-                    {/* Forward Option */}
-                    <button onClick={() => { onForward && onForward(message); setContextMenu(null); }} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-purple-400"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-                        Forward
-                    </button>
-
-                    {/* Download Option */}
-                    {(message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio' || message.messageType === 'file') && (
-                        <button onClick={handleDownload} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
-                            Download
-                        </button>
-                    )}
-
-                    {/* Divider if we have delete options */}
-                    {!message.deletedForEveryone && <div className="h-px bg-white/5 my-1" />}
-
-                    {/* Delete Options */}
-                    {!message.deletedForEveryone && (
-                        <>
-                            {isOwn && (
-                                <button onClick={() => handleDelete(true)} className="px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-3 transition-colors font-medium">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
-                                    Delete for Everyone
-                                </button>
-                            )}
-                            <button onClick={() => handleDelete(false)} className="px-4 py-2.5 text-left text-sm text-gray-400 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
-                                Delete for Me
+                <>
+                    <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} />
+                    <div
+                        ref={menuRef}
+                        className="fixed bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-xl shadow-2xl z-50 py-1.5 flex flex-col min-w-[180px] animate-in fade-in zoom-in-95 origin-top-left overflow-hidden"
+                        style={{ top: contextMenu.y, left: contextMenu.x }}
+                    >
+                        {/* Copy Option (Text Only) */}
+                        {(message.messageType === 'text' || message.content) && !isCallLog && (
+                            <button onClick={handleCopy} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-400"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                Copy Text
                             </button>
-                        </>
-                    )}
-                </div>
+                        )}
+
+                        {/* Edit Option (Own Text Only) */}
+                        {isOwn && !message.deletedForEveryone && message.messageType === 'text' && (
+                            <button onClick={() => { setIsEditing(true); setContextMenu(null); }} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-blue-400"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                                Edit Message
+                            </button>
+
+                        )}
+
+                        {/* Forward Option */}
+                        <button onClick={() => { onForward && onForward(message); setContextMenu(null); }} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                            Forward
+                        </button>
+
+                        {/* Download Option */}
+                        {(message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio' || message.messageType === 'file') && (
+                            <button onClick={async () => {
+                                try {
+                                    const response = await fetch(message.attachmentUrl);
+                                    const blob = await response.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.style.display = 'none';
+                                    a.href = url;
+                                    a.download = message.name || `download-${Date.now()}`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    window.URL.revokeObjectURL(url);
+                                    setContextMenu(null);
+                                } catch (e) {
+                                    console.error('Download failed', e);
+                                    alert('Download failed');
+                                }
+                            }} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                Download
+                            </button>
+                        )}
+
+                        {/* Divider if we have delete options */}
+                        {!message.deletedForEveryone && <div className="h-px bg-white/5 my-1" />}
+
+                        {/* Delete Options */}
+                        {!message.deletedForEveryone && (
+                            <>
+                                {isOwn && (
+                                    <button onClick={() => handleDelete(true)} className="px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-3 transition-colors font-medium">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                                        Delete for Everyone
+                                    </button>
+                                )}
+                                <button onClick={() => handleDelete(false)} className="px-4 py-2.5 text-left text-sm text-gray-400 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                                    Delete for Me
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </>
             )
             }
 
