@@ -444,12 +444,10 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                                 {!transcription && !isTranscribing && (
                                                     <button
                                                         onClick={handleTranscribe}
-                                                        className="mt-2 text-[11px] font-bold text-gray-300 bg-[#374151] hover:bg-[#4b5563] px-3 py-1.5 rounded-full flex items-center gap-2 transition shadow-sm border border-white/5"
+                                                        className="mt-2 text-[10px] font-bold text-white/80 bg-black/20 hover:bg-black/40 px-3 py-1.5 rounded-full flex items-center gap-2 transition backdrop-blur-sm self-start"
                                                     >
-                                                        <div className="p-0.5 bg-green-500/20 rounded-full text-green-400">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                                                        </div>
-                                                        Transcribe Audio
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                                                        Transcribe
                                                     </button>
                                                 )}
 
@@ -461,19 +459,11 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                                 )}
 
                                                 {transcription && (
-                                                    <div className="mt-3 relative max-w-[280px]">
-                                                        <div className="absolute -top-1.5 left-4 w-3 h-3 bg-[#1f2937] rotate-45 border-t border-l border-green-500/30"></div>
-                                                        <div className="bg-[#1f2937] rounded-lg p-3 shadow-lg border border-green-500/30 relative z-10">
-                                                            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                                                <div className="p-1 bg-green-500/10 rounded text-green-400">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                                                </div>
-                                                                <span className="text-[10px] uppercase font-bold text-green-400 tracking-wider">Transcription</span>
-                                                            </div>
-                                                            <p className="text-gray-200 text-[13px] leading-relaxed italic">
-                                                                "{transcription}"
-                                                            </p>
-                                                        </div>
+                                                    <div className="mt-2 pl-3 border-l-2 border-green-500/50 py-0.5">
+                                                        <p className="text-[10px] font-bold text-green-400 mb-0.5 uppercase tracking-wider opacity-80">Transcription</p>
+                                                        <p className="text-[13px] text-gray-100 leading-relaxed italic opacity-90">
+                                                            "{transcription}"
+                                                        </p>
                                                     </div>
                                                 )}
                                             </div>
