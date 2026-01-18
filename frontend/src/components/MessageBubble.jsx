@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
-const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick }) => {
+const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward }) => {
     const [showActions, setShowActions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
@@ -19,6 +19,13 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const handleForwardConfig = () => {
+        // Find the 'forward' handler passed from parent or emit event
+        // Ideally, ChatWindow should pass an 'onForward' prop
+        // But here we can just signal up
+        // check props
+    };
 
     const handleContextMenu = (e) => {
         e.preventDefault();
@@ -133,7 +140,14 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-blue-400"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
                             Edit Message
                         </button>
+
                     )}
+
+                    {/* Forward Option */}
+                    <button onClick={() => { onForward && onForward(message); setContextMenu(null); }} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-purple-400"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                        Forward
+                    </button>
 
                     {/* Download Option */}
                     {(message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio' || message.messageType === 'file') && (
@@ -162,19 +176,22 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                         </>
                     )}
                 </div>
-            )}
+            )
+            }
 
-            {!isOwn && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 mr-2 overflow-hidden flex-shrink-0 mt-auto mb-1 ring-2 ring-[#1c1c1f]">
-                    {message.User?.avatar ? (
-                        <img src={message.User.avatar} alt={message.User.name} className="w-full h-full object-cover" />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold">
-                            {message.User?.name ? message.User.name[0].toUpperCase() : '?'}
-                        </div>
-                    )}
-                </div>
-            )}
+            {
+                !isOwn && (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 mr-2 overflow-hidden flex-shrink-0 mt-auto mb-1 ring-2 ring-[#1c1c1f]">
+                        {message.User?.avatar ? (
+                            <img src={message.User.avatar} alt={message.User.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold">
+                                {message.User?.name ? message.User.name[0].toUpperCase() : '?'}
+                            </div>
+                        )}
+                    </div>
+                )
+            }
 
             {/* Bubble Container */}
             <div
@@ -184,7 +201,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                         : 'bg-[#18181b]/90 backdrop-blur-md border border-white/5 text-gray-100 rounded-[1.25rem] rounded-tl-sm shadow-md'
                     } ${message.deletedForEveryone ? 'italic text-gray-400 border border-gray-600/30 bg-white/5 shadow-none px-4 py-2' : ''}`}
             >
-                {!isOwn && isGroup && message.User?.name && !message.deletedForEveryone && (
+                {!isOwn && isGroup && message.User?.name && !message.deletedForEveryone && message.User.name !== 'LinkUp AI' && (
                     <span className={`text-[11px] font-bold mb-1 px-4 pt-2 ${['text-pink-500', 'text-purple-500', 'text-indigo-500', 'text-blue-500', 'text-green-500', 'text-teal-500'][message.User.name.length % 6]
                         }`}>
                         {message.User.name}
@@ -344,7 +361,13 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                                 }
 
                                                 // Normal Text
-                                                if (message.messageType === 'system') return null; // Already handled above or fallback
+                                                if (message.messageType === 'system') return null;
+
+                                                // Skip rendering name if it's already shown in header (for AI mainly)
+                                                // or strictly prevent "LinkUp AI" inside bubble content if backend sends it.
+                                                // Actually the user said "LinkUp AI is twice name there at senders name".
+                                                // So it's likely the header name + content name.
+                                                // The header name logic is above (line 228).
 
                                                 return (
                                                     <span className="whitespace-pre-wrap">
@@ -352,7 +375,6 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                                             if (word.startsWith('@')) {
                                                                 return <span key={index} className="bg-blue-500/20 text-blue-300 px-1 rounded font-medium">{word} </span>;
                                                             }
-                                                            // Detect URLs
                                                             if (word.match(/^https?:\/\//)) {
                                                                 return <a key={index} href={word} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline decoration-blue-300/50 break-all">{word} </a>;
                                                             }

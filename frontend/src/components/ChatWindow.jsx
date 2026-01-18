@@ -5,6 +5,7 @@ import GroupInfoModal from './GroupInfoModal';
 import EmojiPicker from 'emoji-picker-react';
 import ImageLightbox from './ImageLightbox';
 import CameraModal from './CameraModal';
+import UserProfileModal from './UserProfileModal';
 
 
 const ChatWindow = ({
@@ -33,6 +34,7 @@ const ChatWindow = ({
     // Top-Lvl States
     const [newMessage, setNewMessage] = useState('');
     const [showGroupInfo, setShowGroupInfo] = useState(false);
+    const [showUserProfile, setShowUserProfile] = useState(false); // [NEW] Profile Modal
     const [showMenu, setShowMenu] = useState(false); // Dropdown menu state
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearch, setShowSearch] = useState(false);
@@ -428,8 +430,21 @@ const ChatWindow = ({
                         messageType = 'audio';
                     }
 
-                    // Send the message for this file
-                    await onSendMessage(`${messageType === 'file' ? 'File:' : ''} ${fileObj.name}`, messageType, url);
+                    // [MODIFIED] Send content (caption) with the file message if available
+                    // Only attach caption to the first file if multiple sent, or handle loop logic
+                    const caption = newMessage || (messageType === 'file' ? `File: ${fileObj.name}` : '');
+
+                    await onSendMessage(caption, messageType, url);
+
+                    // Clear message input after sending with first file (or all?)
+                    // If we want one caption for multiple files, we'd need multiple messages with same caption? 
+                    // Usually apps send caption only with the last file or first. 
+                    // Here we send with every file so we clear it after first use to avoid duplicates?
+                    // Actually, simple logic: Send caption with first file only? 
+                    // Let's just send it with every file for now or clear it. 
+                    // Better: Send caption with the first image/video.
+
+                    if (newMessage) setNewMessage(''); // Clear after using
 
                     // Remove from queue visually (or mark done)
                     setUploadingFiles(prev => {
@@ -452,8 +467,8 @@ const ChatWindow = ({
             setSelectedFiles([]);
         }
 
-        // 2. Send Text Message (Caption) SECOND
-        // This ensures the AI sees the image (sent above) as "context" for this text prompt
+        // 2. Send Text Message (Only if NO files were sent, to avoid double text)
+        // Since we clear newMessage in the file loop, this check handles it.
         if (newMessage.trim()) {
             await onSendMessage(newMessage); // Use await to ensure order if socket is fast
             setNewMessage('');
@@ -515,7 +530,7 @@ const ChatWindow = ({
 
                     <div
                         className="flex items-center cursor-pointer hover:bg-white/5 p-2 -ml-2 rounded-xl transition-all duration-200"
-                        onClick={() => conversation.isGroup && setShowGroupInfo(true)}
+                        onClick={() => conversation.isGroup ? setShowGroupInfo(true) : setShowUserProfile(true)}
                     >
                         <div className="w-11 h-11 rounded-full mr-4 overflow-hidden border border-[#3f3f46] shadow-md relative ring-2 ring-black/20">
                             {conversation.avatar ? (
@@ -1109,6 +1124,22 @@ const ChatWindow = ({
                     <CameraModal
                         onClose={() => setShowCamera(false)}
                         onCapture={handleCameraCapture}
+                    />
+                )
+            }
+
+            {/* Profile Modal */}
+            {
+                showUserProfile && !conversation.isGroup && conversation.otherUserId && (
+                    <UserProfileModal
+                        user={{
+                            id: conversation.otherUserId,
+                            name: conversation.name,
+                            avatar: conversation.avatar,
+                            email: conversation.email,
+                            // Pass other details if available in 'conversation' or fetch them inside modal
+                        }}
+                        onClose={() => setShowUserProfile(false)}
                     />
                 )
             }
