@@ -453,56 +453,56 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                 {((message.content && message.messageType !== 'file') || (message.content && message.messageType === 'file' && message.content !== 'File: ' + message.name)) && (
                                     <div className={`px-4 py-2 ${message.attachmentUrl ? 'pt-1' : ''} relative z-10 break-words text-[15px] leading-relaxed`}>
                                         {(message.messageType === 'text' || message.messageType === 'system' || message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio') && (<>
-                                            (() => {
+                                            {(() => {
                                                 let parsed = null;
-                                            // JSON System checks (Call logs)
-                                            if (message.messageType === 'system' || (message.content.startsWith('{') && message.content.includes('call_log'))) {
-                                                    try {parsed = JSON.parse(message.content); } catch (e) { }
+                                                // JSON System checks (Call logs)
+                                                if (message.messageType === 'system' || (message.content.startsWith('{') && message.content.includes('call_log'))) {
+                                                    try { parsed = JSON.parse(message.content); } catch (e) { }
                                                 }
 
-                                            if (parsed && parsed.type === 'call_log') {
+                                                if (parsed && parsed.type === 'call_log') {
                                                     const isMissed = parsed.status === 'missed' || parsed.status === 'declined';
-                                            const isIncoming = !isOwn;
-                                            const isVideo = parsed.isVideo;
-                                            return (
-                                            <div className="flex items-center gap-3 min-w-[180px] py-1">
-                                                <div className={`p-2 rounded-full ${isMissed ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
-                                                    {isVideo ? (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                                                    ) : (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-sm">{isVideo ? 'Video Call' : 'Voice Call'}</p>
-                                                    <p className="text-xs opacity-70">{parsed.duration || (isMissed ? 'Missed' : 'Ended')}</p>
-                                                </div>
-                                            </div>
-                                            );
+                                                    const isIncoming = !isOwn;
+                                                    const isVideo = parsed.isVideo;
+                                                    return (
+                                                        <div className="flex items-center gap-3 min-w-[180px] py-1">
+                                                            <div className={`p-2 rounded-full ${isMissed ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
+                                                                {isVideo ? (
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                                                                ) : (
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-sm">{isVideo ? 'Video Call' : 'Voice Call'}</p>
+                                                                <p className="text-xs opacity-70">{parsed.duration || (isMissed ? 'Missed' : 'Ended')}</p>
+                                                            </div>
+                                                        </div>
+                                                    );
                                                 }
 
-                                            // Normal Text
-                                            if (message.messageType === 'system') return null;
+                                                // Normal Text
+                                                if (message.messageType === 'system') return null;
 
-                                            // Skip rendering name if it's already shown in header (for AI mainly)
-                                            // or strictly prevent "LinkUp AI" inside bubble content if backend sends it.
-                                            // Actually the user said "LinkUp AI is twice name there at senders name".
-                                            // So it's likely the header name + content name.
-                                            // The header name logic is above (line 228).
+                                                // Skip rendering name if it's already shown in header (for AI mainly)
+                                                // or strictly prevent "LinkUp AI" inside bubble content if backend sends it.
+                                                // Actually the user said "LinkUp AI is twice name there at senders name".
+                                                // So it's likely the header name + content name.
+                                                // The header name logic is above (line 228).
 
-                                            return (
-                                            <span className="whitespace-pre-wrap">
-                                                {message.content.split(' ').map((word, index) => {
-                                                    if (word.startsWith('@')) {
-                                                        return <span key={index} className="bg-blue-500/20 text-blue-300 px-1 rounded font-medium">{word} </span>;
-                                                    }
-                                                    if (word.match(/^https?:\/\//)) {
-                                                        return <a key={index} href={word} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline decoration-blue-300/50 break-all">{word} </a>;
-                                                    }
-                                                    return word + ' ';
-                                                })}
-                                            </span>
-                                            );
+                                                return (
+                                                    <span className="whitespace-pre-wrap">
+                                                        {message.content.split(' ').map((word, index) => {
+                                                            if (word.startsWith('@')) {
+                                                                return <span key={index} className="bg-blue-500/20 text-blue-300 px-1 rounded font-medium">{word} </span>;
+                                                            }
+                                                            if (word.match(/^https?:\/\//)) {
+                                                                return <a key={index} href={word} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline decoration-blue-300/50 break-all">{word} </a>;
+                                                            }
+                                                            return word + ' ';
+                                                        })}
+                                                    </span>
+                                                );
                                             })()}
 
                                             {/* Translation UI */}
