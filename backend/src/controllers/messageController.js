@@ -423,7 +423,7 @@ const editMessage = async (req, res) => {
 
 const summarizeConversation = async (req, res) => {
     try {
-        const { conversationId } = req.body;
+        const conversationId = req.body.conversationId || req.params.conversationId;
         // Basic check
         if (!conversationId) return res.status(400).json({ error: "conversationId required" });
 

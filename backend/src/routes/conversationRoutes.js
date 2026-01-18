@@ -33,4 +33,8 @@ router.put('/:conversationId', verifyToken, updateGroupInfo);
 router.put('/:conversationId/members/:userId/promote', verifyToken, promoteAdmin);
 router.put('/:conversationId/members/:userId/dismiss', verifyToken, dismissAdmin);
 
+// [NEW] Summarize Route (via MessageController)
+const { summarizeConversation } = require('../controllers/messageController');
+router.post('/:conversationId/summarize', verifyToken, summarizeConversation);
+
 module.exports = router;
