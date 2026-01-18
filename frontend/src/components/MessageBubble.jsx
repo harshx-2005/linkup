@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import VideoPlayer from './VideoPlayer';
 
-const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward, onReply }) => {
+const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward, onReply, onReplyClick, id }) => {
+
     const [showActions, setShowActions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
@@ -133,6 +134,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
     return (
         <div
+            id={id}
             className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-1 group relative`}
             onMouseEnter={() => setShowActions(true)}
             onMouseLeave={() => setShowActions(false)}
@@ -275,13 +277,18 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
                 {/* Replied Message Preview */}
                 {message.ReplyTo && !message.deletedForEveryone && (
-                    <div className="mx-2 mt-2 mb-1 rounded-lg bg-black/20 border-l-4 border-purple-500 overflow-hidden text-left cursor-pointer transition hover:bg-black/30 opacity-90"
-                        onClick={(e) => { e.stopPropagation(); /* Optional: Scroll to original */ }}>
-                        <div className="p-1 px-2">
-                            <div className="text-[10px] font-bold text-purple-400 mb-0.5">
+                    <div
+                        className="mx-1 mt-1 mb-1 rounded-lg bg-black/20 border-l-[3px] border-purple-500 overflow-hidden text-left cursor-pointer transition-all hover:bg-black/40 hover:scale-[1.02] active:scale-95"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (onReplyClick) onReplyClick(message.ReplyTo.id);
+                        }}
+                    >
+                        <div className="p-2 px-3">
+                            <div className="text-xs font-bold text-purple-400 mb-0.5">
                                 {message.ReplyTo.User?.name || 'User'}
                             </div>
-                            <div className="text-xs text-gray-300 truncate">
+                            <div className="text-sm text-gray-300 truncate opacity-90">
                                 {message.ReplyTo.messageType === 'image' ? '📷 Photo' :
                                     message.ReplyTo.messageType === 'video' ? '🎥 Video' :
                                         message.ReplyTo.deletedForEveryone ? 'This message was deleted' :

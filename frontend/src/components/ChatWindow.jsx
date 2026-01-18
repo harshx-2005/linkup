@@ -114,6 +114,37 @@ const ChatWindow = ({
         }
     };
 
+    // [NEW] Scroll & Navigation Logic
+    const [showScrollBottom, setShowScrollBottom] = useState(false);
+
+    const handleScroll = (e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target;
+        // Show button if we are NOT at the bottom (threshold 300px)
+        const isAtBottom = scrollHeight - scrollTop - clientHeight < 300;
+        setShowScrollBottom(!isAtBottom);
+
+        if (scrollTop === 0) {
+            // Future: load more
+        }
+    };
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleScrollToMessage = (messageId) => {
+        const el = document.getElementById(`message-${messageId}`);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Flash highlight effect
+            const originalClass = el.className;
+            el.classList.add('ring-2', 'ring-purple-500', 'bg-purple-500/10', 'transition-all', 'duration-1000');
+            setTimeout(() => {
+                el.classList.remove('ring-2', 'ring-purple-500', 'bg-purple-500/10', 'transition-all', 'duration-1000');
+            }, 1500);
+        }
+    };
+
     const typingTimeoutRef = useRef(null);
 
     // Typing Handlers
@@ -783,25 +814,38 @@ const ChatWindow = ({
 
             {/* Messages */}
             <div
-                className="flex-1 overflow-y-auto overflow-x-hidden p-4 min-h-0 scroll-smooth custom-scrollbar"
+                className="flex-1 overflow-y-auto overflow-x-hidden p-4 min-h-0 scroll-smooth custom-scrollbar relative"
                 id="messages-container"
-                onScroll={(e) => { if (e.target.scrollTop === 0) { /* onLoadMore() */ } }}
+                onScroll={handleScroll}
             >
                 {filteredMessages.map((msg) => (
                     <MessageBubble
                         key={msg.id}
+                        id={`message-${msg.id}`}
                         message={msg}
                         isOwn={msg.senderId == currentUser.id}
                         isGroup={conversation.isGroup}
                         onEdit={onEditMessage}
                         onDelete={onDeleteMessage}
-                        onImageClick={setLightboxImage} // [NEW] Pass click handler
+                        onImageClick={setLightboxImage}
                         onForward={handleForward}
                         onReply={handleReply}
+                        onReplyClick={handleScrollToMessage}
                     />
                 ))}
                 <div ref={messagesEndRef} />
             </div>
+
+            {/* Scroll to Bottom Button */}
+            {showScrollBottom && (
+                <button
+                    onClick={scrollToBottom}
+                    className="absolute bottom-24 right-6 z-30 p-2 bg-[#202c33] text-gray-300 rounded-full shadow-lg border border-white/5 hover:bg-[#2a3942] transition-all animate-bounce-small"
+                    aria-label="Scroll to bottom"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+            )}
 
             {/* Staging Area / Multi-File Preview */}
             {/* Staging Area / Multi-File Preview */}
