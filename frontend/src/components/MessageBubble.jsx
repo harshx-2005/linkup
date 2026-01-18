@@ -32,21 +32,25 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         e.preventDefault();
         if (message.deletedForEveryone) return;
 
-        // Smart positioning to prevent overflow
+        // Robust positioning: Flip alignment if near edges
         let x = e.clientX;
         let y = e.clientY;
-        const menuWidth = 220; // Slightly larger for safety
+        const menuWidth = 220;
         const menuHeight = 250;
 
-        // Check Right Edge
-        if (x + menuWidth > window.innerWidth) {
-            x = window.innerWidth - menuWidth - 10; // Shift left with padding
+        // If clicked on the right half of the screen, align menu to the left of the cursor
+        if (x > window.innerWidth / 2) {
+            x = x - menuWidth;
         }
 
-        // Check Bottom Edge
-        if (y + menuHeight > window.innerHeight) {
-            y = window.innerHeight - menuHeight - 10; // Shift up
+        // If clicked on the bottom half of the screen, align menu upwards from the cursor
+        if (y > window.innerHeight / 2) {
+            y = y - menuHeight;
         }
+
+        // Add padding to ensure it doesn't touch edges
+        x = Math.max(10, Math.min(x, window.innerWidth - menuWidth - 10));
+        y = Math.max(10, Math.min(y, window.innerHeight - menuHeight - 10));
 
         setContextMenu({ x, y });
     };
