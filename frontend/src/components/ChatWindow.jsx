@@ -72,6 +72,18 @@ const ChatWindow = ({
     const [showForwardModal, setShowForwardModal] = useState(false);
     const [messageToForward, setMessageToForward] = useState(null);
 
+    // [NEW] Reply State
+    const [replyingTo, setReplyingTo] = useState(null);
+
+    const handleReply = (msg) => {
+        setReplyingTo(msg);
+        footerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const cancelReply = () => {
+        setReplyingTo(null);
+    };
+
     // [NEW] Summarize State
     const [summaryResult, setSummaryResult] = useState(null);
     const [isSummarizing, setIsSummarizing] = useState(false);
@@ -490,8 +502,9 @@ const ChatWindow = ({
         // 2. Send Text Message (Only if NO files were sent, to avoid double text)
         // [FIX] We check selectedFiles.length === 0 because if files were sent, the caption was already attached.
         if (newMessage.trim() && selectedFiles.length === 0) {
-            await onSendMessage(newMessage); // Use await to ensure order if socket is fast
+            await onSendMessage(newMessage, 'text', null, replyingTo?.id); // Use await to ensure order if socket is fast
             setNewMessage('');
+            setReplyingTo(null);
         }
     };
 
@@ -781,6 +794,7 @@ const ChatWindow = ({
                         onDelete={onDeleteMessage}
                         onImageClick={setLightboxImage} // [NEW] Pass click handler
                         onForward={handleForward}
+                        onReply={handleReply}
                     />
                 ))}
                 <div ref={messagesEndRef} />
@@ -904,6 +918,26 @@ const ChatWindow = ({
                         )}
 
                         <div className={`p-3 md:p-4 bg-black/80 backdrop-blur-xl border-t border-[#27272a] relative transition-all duration-300 ${isRecording ? 'border-red-500/30' : ''}`} ref={footerRef}>
+                            {/* [NEW] Reply Banner */}
+                            {replyingTo && (
+                                <div className="flex items-center justify-between p-2 mb-2 bg-[#27272a] border-l-4 border-blue-500 rounded-r-lg animate-in slide-in-from-bottom-2">
+                                    <div className="flex-1 min-w-0 mx-2">
+                                        <div className="text-blue-400 text-xs font-bold mb-0.5">
+                                            Replying to {replyingTo.User?.name || 'User'}
+                                        </div>
+                                        <div className="text-gray-300 text-sm truncate">
+                                            {replyingTo.messageType === 'image' ? '📷 Photo' :
+                                                replyingTo.messageType === 'video' ? '🎥 Video' :
+                                                    replyingTo.content}
+                                        </div>
+                                    </div>
+                                    <button onClick={cancelReply} className="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            )}
                             {/* [MODIFIED] Smart Replies moved above relative to input */}
                             {smartReplies.length > 0 && (
                                 <div className="w-full px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar mask-gradient-x animate-fade-in-up">

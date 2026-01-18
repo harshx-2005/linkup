@@ -17,6 +17,9 @@ Message.belongsTo(User, { foreignKey: 'senderId' });
 Conversation.hasMany(Message, { foreignKey: 'conversationId' });
 Message.belongsTo(Conversation, { foreignKey: 'conversationId' });
 
+// Message - Reply (Self-Association)
+Message.belongsTo(Message, { as: 'ReplyTo', foreignKey: 'replyToId' });
+
 // Conversation - Creator (One-to-Many) - Optional, for group creators
 User.hasMany(Conversation, { foreignKey: 'createdBy' });
 Conversation.belongsTo(User, { foreignKey: 'createdBy' });

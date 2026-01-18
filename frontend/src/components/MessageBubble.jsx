@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import VideoPlayer from './VideoPlayer';
 
-const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward }) => {
+const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward, onReply }) => {
     const [showActions, setShowActions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
@@ -98,7 +98,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
     };
 
     const handleReply = () => {
-        // Future implementation or callback
+        if (onReply) onReply(message);
         setContextMenu(null);
     };
 
@@ -155,6 +155,14 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                         className="fixed bg-[#18181b]/95 backdrop-blur-2xl border border-[#2a2a2e] rounded-xl shadow-2xl z-50 py-1.5 flex flex-col min-w-[180px] animate-in fade-in zoom-in-95 origin-top-left overflow-hidden"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
+                        {/* Reply Option */}
+                        {!message.deletedForEveryone && !isCallLog && (
+                            <button onClick={handleReply} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-400 rotate-180 flip-y"><polyline points="9 17 4 12 9 7" /><path d="M20 18v-2a4 4 0 0 0-4-4H4" /></svg>
+                                Reply
+                            </button>
+                        )}
+
                         {/* Copy Option (Text Only) */}
                         {(message.messageType === 'text' || message.content) && !isCallLog && (
                             <button onClick={handleCopy} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
@@ -266,6 +274,24 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                         }`}>
                         {message.User.name}
                     </span>
+                )}
+
+                {/* Replied Message Preview */}
+                {message.ReplyTo && !message.deletedForEveryone && (
+                    <div className="mx-2 mt-2 mb-1 rounded-lg bg-black/20 border-l-4 border-purple-500 overflow-hidden text-left cursor-pointer transition hover:bg-black/30 opacity-90"
+                        onClick={(e) => { e.stopPropagation(); /* Optional: Scroll to original */ }}>
+                        <div className="p-1 px-2">
+                            <div className="text-[10px] font-bold text-purple-400 mb-0.5">
+                                {message.ReplyTo.User?.name || 'User'}
+                            </div>
+                            <div className="text-xs text-gray-300 truncate">
+                                {message.ReplyTo.messageType === 'image' ? '📷 Photo' :
+                                    message.ReplyTo.messageType === 'video' ? '🎥 Video' :
+                                        message.ReplyTo.deletedForEveryone ? 'This message was deleted' :
+                                            message.ReplyTo.content}
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {/* Call Log Specific Layout */}

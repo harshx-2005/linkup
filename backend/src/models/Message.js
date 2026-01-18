@@ -15,6 +15,10 @@ const Message = sequelize.define('Message', {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
+    replyToId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
     content: {
         type: DataTypes.TEXT,
         allowNull: true, // Can be null if only attachment

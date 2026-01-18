@@ -18,6 +18,12 @@ const getMessages = async (req, res) => {
                     model: User,
                     attributes: ['id', 'name', 'avatar'],
                 },
+                {
+                    model: Message,
+                    as: 'ReplyTo',
+                    attributes: ['id', 'content', 'messageType', 'attachmentUrl'],
+                    include: [{ model: User, attributes: ['name'] }]
+                }
             ],
             order: [['createdAt', 'DESC']], // Fetch newest first for pagination
             limit,
@@ -71,7 +77,7 @@ const geminiService = require('../services/geminiService');
 
 const sendMessage = async (req, res) => {
     try {
-        const { conversationId, content, messageType, attachmentUrl } = req.body;
+        const { conversationId, content, messageType, attachmentUrl, replyToId } = req.body;
 
         let senderId;
         if (req.user) {

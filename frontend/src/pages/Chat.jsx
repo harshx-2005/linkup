@@ -1191,7 +1191,7 @@ const Chat = () => {
 
 
 
-    const handleSendMessage = async (content, messageType = 'text', attachmentUrl = null) => {
+    const handleSendMessage = async (content, messageType = 'text', attachmentUrl = null, replyToId = null) => {
         try {
             const token = localStorage.getItem('token');
             const res = await axios.post('/api/messages/send', {
@@ -1199,6 +1199,7 @@ const Chat = () => {
                 content,
                 messageType,
                 attachmentUrl,
+                replyToId,
             }, {
                 headers: { Authorization: `Bearer ${token}` },
             });
