@@ -1,11 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import VideoPlayer from './VideoPlayer';
+import axios from 'axios';
 
 const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward, onReply, onReplyClick, id }) => {
 
     const [showActions, setShowActions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
+
+    // AI States
+    const [translation, setTranslation] = useState(null);
+    const [transcription, setTranscription] = useState(null);
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const [showTranslation, setShowTranslation] = useState(false);
 
     // Context Menu State
     const [contextMenu, setContextMenu] = useState(null); // { x, y }
@@ -98,6 +106,48 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
     const handleReply = () => {
         if (onReply) onReply(message);
         setContextMenu(null);
+    };
+
+    const handleTranslate = async () => {
+        if (translation) {
+            setShowTranslation(!showTranslation);
+            setContextMenu(null);
+            return;
+        }
+
+        setIsTranslating(true);
+        setContextMenu(null);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/messages/translate`,
+                { text: message.content, targetLang: 'English' },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setTranslation(res.data.translated);
+            setShowTranslation(true);
+        } catch (error) {
+            console.error("Translation Failed", error);
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
+    const handleTranscribe = async () => {
+        if (transcription) return;
+
+        setIsTranscribing(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/messages/transcribe`,
+                { audioUrl: message.attachmentUrl },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setTranscription(res.data.transcription);
+        } catch (error) {
+            console.error("Transcription Failed", error);
+        } finally {
+            setIsTranscribing(false);
+        }
     };
 
     // Unified Message Parsing (Call Logs vs System vs Text)
