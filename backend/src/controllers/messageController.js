@@ -128,6 +128,12 @@ const sendMessage = async (req, res) => {
                     model: User,
                     attributes: ['id', 'name', 'avatar'],
                 },
+                {
+                    model: Message,
+                    as: 'ReplyTo',
+                    attributes: ['id', 'content', 'messageType', 'attachmentUrl', 'deletedForEveryone'],
+                    include: [{ model: User, attributes: ['name'] }]
+                }
             ],
         });
 
