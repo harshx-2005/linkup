@@ -10,16 +10,8 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
     const [editContent, setEditContent] = useState(message.content);
 
     // AI States
-    const [translation, setTranslation] = useState(null);
     const [transcription, setTranscription] = useState(null);
-    const [isTranslating, setIsTranslating] = useState(false);
     const [isTranscribing, setIsTranscribing] = useState(false);
-    const [showTranslation, setShowTranslation] = useState(false);
-    const [targetLang, setTargetLang] = useState('English');
-    const [showLangMenu, setShowLangMenu] = useState(false);
-
-    // Languages
-    const languages = ['English', 'Hindi', 'Spanish', 'French', 'German', 'Marathi', 'Japanese'];
 
     // Context Menu State
     const [contextMenu, setContextMenu] = useState(null); // { x, y }
@@ -120,36 +112,6 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
     const handleReply = () => {
         if (onReply) onReply(message);
         setContextMenu(null);
-    };
-
-    const fetchTranslation = async (lang = targetLang) => {
-        setIsTranslating(true);
-        try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/messages/translate`,
-                { text: message.content, targetLang: lang },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setTranslation(res.data.translated);
-            setShowTranslation(true);
-        } catch (error) {
-            console.error("Translation Failed", error);
-        } finally {
-            setIsTranslating(false);
-        }
-    };
-
-    const handleTranslate = async () => {
-        setContextMenu(null);
-        if (translation && showTranslation) {
-            setShowTranslation(false);
-            return;
-        }
-        if (translation && !showTranslation) {
-            setShowTranslation(true);
-            return;
-        }
-        await fetchTranslation(targetLang);
     };
 
     const handleTranscribe = async () => {
@@ -254,14 +216,6 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400 rotate-45"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                             Forward
                         </button>
-
-                        {/* Translate Option (Text Only) */}
-                        {message.messageType === 'text' && !message.deletedForEveryone && (
-                            <button onClick={handleTranslate} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium border-t border-white/5">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-400"><path d="m5 8 5-5 5 5"></path><path d="M12 18v-5"></path><path d="m5 16 6-6 6 6"></path><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"></path><path d="M2 12h20"></path></svg>
-                                {showTranslation ? 'Hide Translation' : 'Translate'}
-                            </button>
-                        )}
 
                         {/* Download Option */}
                         {message.attachmentUrl && message.messageType !== 'text' && ['image', 'video', 'audio', 'file'].includes(message.messageType) && (
