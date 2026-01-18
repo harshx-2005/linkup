@@ -448,6 +448,32 @@ const rewriteMessage = async (req, res) => {
     }
 };
 
+const translateMessage = async (req, res) => {
+    try {
+        const { text, targetLang } = req.body;
+        if (!text) return res.status(400).json({ error: "text required" });
+
+        const translated = await geminiService.translateText(text, targetLang || 'English');
+        res.json({ translated });
+    } catch (error) {
+        console.error("Translate Error:", error);
+        res.status(500).json({ error: "Failed to translate" });
+    }
+};
+
+const transcribeAudioMessage = async (req, res) => {
+    try {
+        const { audioUrl } = req.body;
+        if (!audioUrl) return res.status(400).json({ error: "audioUrl required" });
+
+        const transcription = await geminiService.transcribeAudio(audioUrl);
+        res.json({ transcription });
+    } catch (error) {
+        console.error("Transcribe Error:", error);
+        res.status(500).json({ error: "Failed to transcribe" });
+    }
+};
+
 module.exports = {
     getMessages,
     sendMessage,
@@ -457,5 +483,7 @@ module.exports = {
     editMessage,
     getSmartReplies,
     summarizeConversation,
-    rewriteMessage
+    rewriteMessage,
+    translateMessage,
+    transcribeAudioMessage
 };

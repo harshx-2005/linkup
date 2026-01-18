@@ -235,4 +235,70 @@ const rewriteMessage = async (text, tone) => {
     }
 };
 
-module.exports = { generateSmartReplies, getAiResponse, generateSummary, rewriteMessage };
+const translateText = async (text, targetLanguage = 'English') => {
+    try {
+        const prompt = `
+        Translate the following text to ${targetLanguage}.
+        Text: "${text}"
+        
+        Output ONLY the translated text. No preamble.
+        `;
+
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }]
+        };
+
+        const data = await callGeminiAPI(payload);
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Translation failed.";
+
+    } catch (error) {
+        console.error("❌ [GeminiService] Translate Error:", error);
+        throw error;
+    }
+};
+
+const transcribeAudio = async (audioUrl) => {
+    try {
+        console.log(`🎙️ [GeminiService] Transcribing: ${audioUrl}`);
+
+        // Fetch audio
+        const audioResponse = await axios.get(audioUrl, {
+            responseType: 'arraybuffer',
+            headers: { 'User-Agent': 'LinkUp-AI-Agent/1.0' }
+        });
+
+        const mimeType = audioUrl.endsWith('.ogg') ? 'audio/ogg' :
+            audioUrl.endsWith('.wav') ? 'audio/wav' :
+                audioUrl.endsWith('.mp3') ? 'audio/mp3' : 'audio/mp3';
+
+        const base64Data = Buffer.from(audioResponse.data).toString('base64');
+
+        const prompt = "Transcribe this audio note accurately. Output only the transcription.";
+
+        const payload = {
+            contents: [{
+                parts: [
+                    { text: prompt },
+                    {
+                        inline_data: {
+                            mime_type: mimeType,
+                            data: base64Data
+                        }
+                    }
+                ]
+            }]
+        };
+
+        const data = await callGeminiAPI(payload);
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        console.log(`✅ [GeminiService] Transcription: ${text?.substring(0, 50)}...`);
+        return text || "Could not transcribe audio.";
+
+    } catch (error) {
+        console.error("❌ [GeminiService] Transcription Error:", error);
+        throw new Error("Transcription failed.");
+    }
+};
+
+module.exports = { generateSmartReplies, getAiResponse, generateSummary, rewriteMessage, translateText, transcribeAudio };

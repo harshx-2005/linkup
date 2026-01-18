@@ -185,6 +185,14 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                             Forward
                         </button>
 
+                        {/* Translate Option (Text Only) */}
+                        {message.messageType === 'text' && !message.deletedForEveryone && (
+                            <button onClick={handleTranslate} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium border-t border-white/5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-400"><path d="m5 8 5-5 5 5"></path><path d="M12 18v-5"></path><path d="m5 16 6-6 6 6"></path><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"></path><path d="M2 12h20"></path></svg>
+                                {showTranslation ? 'Hide Translation' : 'Translate'}
+                            </button>
+                        )}
+
                         {/* Download Option */}
                         {message.attachmentUrl && message.messageType !== 'text' && ['image', 'video', 'audio', 'file'].includes(message.messageType) && (
                             <button onClick={async () => {
@@ -378,8 +386,33 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                             </div>
                                         )}
                                         {message.messageType === 'audio' && (
-                                            <div className="p-2">
+                                            <div className="p-2 flex flex-col gap-2">
                                                 <audio src={message.attachmentUrl} controls className="w-full h-10 rounded-lg custom-audio" />
+
+                                                {/* Transcription UI */}
+                                                {!transcription && !isTranscribing && (
+                                                    <button
+                                                        onClick={handleTranscribe}
+                                                        className="self-start text-[11px] font-bold text-gray-300 bg-white/10 hover:bg-white/20 px-2 py-1 rounded flex items-center gap-1 transition"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                                                        Transcribe
+                                                    </button>
+                                                )}
+
+                                                {isTranscribing && (
+                                                    <div className="text-[11px] text-gray-400 animate-pulse flex items-center gap-2">
+                                                        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                                                        Transcribing...
+                                                    </div>
+                                                )}
+
+                                                {transcription && (
+                                                    <div className="bg-black/20 p-2 rounded text-[13px] text-gray-200 border-l-2 border-green-500">
+                                                        <p className="font-bold text-[10px] text-green-400 mb-0.5 uppercase">Transcription</p>
+                                                        {transcription}
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                         {message.messageType === 'file' && (
@@ -470,7 +503,27 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                                         })}
                                                     </span>
                                                 );
-                                            })()
+                                            })()}
+
+                                        {/* Translation UI */}
+                                        {showTranslation && (
+                                            <div className="mt-2 pt-2 border-t border-white/10 text-sm">
+                                                <div className="flex items-center gap-1.5 mb-1 text-xs font-bold text-yellow-400/90 uppercase tracking-wide">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 5-5 5 5"></path><path d="M12 18v-5"></path><path d="m5 16 6-6 6 6"></path><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"></path><path d="M2 12h20"></path></svg>
+                                                    Translation
+                                                </div>
+                                                {isTranslating ? (
+                                                    <div className="flex items-center gap-2 text-gray-400 italic">
+                                                        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                                                        Translating...
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-gray-100/90 leading-relaxed italic animate-in fade-in">
+                                                        {translation}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
                                         )}
                                     </div>
                                 )}
