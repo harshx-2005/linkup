@@ -42,12 +42,13 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
 
         if (triggerButton) {
             const rect = triggerButton.getBoundingClientRect();
-            // WhatsApp Web Style: Align right edge of menu to right edge of button (approximately)
-            x = rect.right - menuWidth;
+            // WhatsApp Web Style:
+            if (isOwn) {
+                x = rect.right - menuWidth;
+            } else {
+                x = rect.left;
+            }
             y = rect.bottom + 5;
-
-            // Adjust if goes off screen
-            if (x < 10) x = rect.left;
         } else {
             // Mouse Context Menu (Right Click)
             // Smart positioning: Flip alignment if near edges
@@ -148,7 +149,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                     <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} />
                     <div
                         ref={menuRef}
-                        className="fixed bg-[#233138] border border-[#374248] rounded-lg shadow-2xl z-50 py-2 flex flex-col min-w-[200px] animate-in fade-in zoom-in-95 origin-top-right overflow-hidden"
+                        className="fixed bg-[#233138] border border-[#374248] rounded-lg shadow-2xl z-50 py-2 flex flex-col min-w-[200px] animate-in fade-in zoom-in-95 origin-top overflow-hidden"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
                         {/* Reply Option */}
