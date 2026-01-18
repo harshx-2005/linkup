@@ -144,17 +144,16 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                 handleContextMenu(e);
             }}
         >
-            {/* Visual Context Menu Trigger (Three Dots) - Visible on Hover */}
+            {/* Premium "More Options" Chevron - Internal & Subtle */}
             <button
                 onClick={(e) => {
                     e.stopPropagation();
                     handleContextMenu(e);
                 }}
-                className={`absolute top-0 bottom-auto p-1 rounded-full bg-black/20 text-white/50 hover:text-white hover:bg-black/40 transition-all duration-200 z-50 ${isOwn ? 'left-0 -translate-x-full mr-2' : 'right-0 translate-x-full ml-2'} opacity-0 group-hover:opacity-100 flex items-center justify-center`}
-            // Removed title to prevent browser tooltip
+                className={`absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white/90 hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100 z-50 shadow-sm border border-white/10`}
             >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                 </svg>
             </button>
             {/* Custom Context Menu */}
