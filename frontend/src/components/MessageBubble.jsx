@@ -535,30 +535,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                                 })()}
 
                                                 {/* Translation UI */}
-                                                {showTranslation && (
-                                                    <div className="mt-3 relative">
-                                                        <div className="absolute -top-3 left-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-[#1f2937]"></div>
-                                                        <div className="bg-[#1f2937] rounded-lg p-3 shadow-lg border border-yellow-500/20">
-                                                            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                                                                <div className="p-1 bg-yellow-500/10 rounded text-yellow-400">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 5-5 5 5"></path><path d="M12 18v-5"></path><path d="m5 16 6-6 6 6"></path><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"></path><path d="M2 12h20"></path></svg>
-                                                                </div>
-                                                                <span className="text-[10px] uppercase font-bold text-yellow-500/90 tracking-wider">English Translation</span>
-                                                            </div>
 
-                                                            {isTranslating ? (
-                                                                <div className="flex items-center gap-2 text-gray-400 text-sm">
-                                                                    <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
-                                                                    Translating...
-                                                                </div>
-                                                            ) : (
-                                                                <p className="text-gray-100 text-[14px] leading-relaxed animate-in fade-in slide-in-from-top-1">
-                                                                    {translation}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
                                             </>)}
                                         </div>
                                     )}
