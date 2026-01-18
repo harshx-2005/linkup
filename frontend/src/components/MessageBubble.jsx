@@ -35,14 +35,17 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         // Smart positioning to prevent overflow
         let x = e.clientX;
         let y = e.clientY;
-        const menuWidth = 200; // Approx menu width
-        const menuHeight = 200; // Approx menu height
+        const menuWidth = 220; // Slightly larger for safety
+        const menuHeight = 250;
 
+        // Check Right Edge
         if (x + menuWidth > window.innerWidth) {
-            x = window.innerWidth - menuWidth - 20; // Shift left
+            x = window.innerWidth - menuWidth - 10; // Shift left with padding
         }
+
+        // Check Bottom Edge
         if (y + menuHeight > window.innerHeight) {
-            y = window.innerHeight - menuHeight - 20; // Shift up
+            y = window.innerHeight - menuHeight - 10; // Shift up
         }
 
         setContextMenu({ x, y });
@@ -320,6 +323,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                                 <VideoPlayer
                                                     src={message.attachmentUrl}
                                                     className="w-full h-full"
+                                                    isPreview={true}
                                                 />
                                             </div>
                                         )}
