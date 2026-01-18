@@ -179,7 +179,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                         </button>
 
                         {/* Download Option */}
-                        {(message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio' || message.messageType === 'file') && (
+                        {message.attachmentUrl && message.messageType !== 'text' && ['image', 'video', 'audio', 'file'].includes(message.messageType) && (
                             <button onClick={async () => {
                                 try {
                                     const response = await fetch(message.attachmentUrl);
