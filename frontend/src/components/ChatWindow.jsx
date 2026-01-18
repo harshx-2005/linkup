@@ -464,9 +464,12 @@ const ChatWindow = ({
 
                     // [MODIFIED] Send content (caption) with the file message if available
                     // Only attach caption to the first file if multiple sent, or handle loop logic
-                    const caption = newMessage || (messageType === 'file' ? `File: ${fileObj.name}` : '');
-
-                    await onSendMessage(caption, messageType, url);
+                    if (url) {
+                        await onSendMessage(caption, messageType, url, replyingTo?.id);
+                    } else {
+                        // If for some reason URL is not returned, send as a text message with caption
+                        await onSendMessage(caption, 'text', null, replyingTo?.id);
+                    }
 
                     // Clear message input after sending with first file (or all?)
                     // If we want one caption for multiple files, we'd need multiple messages with same caption? 
