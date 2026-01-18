@@ -64,38 +64,38 @@ const CustomAudioPlayer = ({ src }) => {
     };
 
     return (
-        <div className="w-full min-w-[200px] select-none">
+        <div className="w-full min-w-[220px] select-none">
             <audio ref={audioRef} src={src} preload="metadata" />
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
                 {/* Play/Pause Button */}
                 <button
                     onClick={togglePlay}
-                    className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition text-white shrink-0 backdrop-blur-md shadow-sm"
+                    className="w-12 h-12 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition text-white shrink-0 backdrop-blur-md shadow-sm"
                 >
                     {isPlaying ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
                             <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
                         </svg>
                     ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 ml-0.5">
                             <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
                         </svg>
                     )}
                 </button>
 
                 {/* Timeline & Times - Single Row */}
-                <div className="flex-1 flex items-center gap-2">
-                    <span className="text-[10px] text-white/90 font-medium w-6 text-right tabular-nums">{formatTime(currentTime)}</span>
+                <div className="flex-1 flex items-center gap-3">
+                    <span className="text-xs text-white/90 font-medium w-8 text-right tabular-nums">{formatTime(currentTime)}</span>
                     <input
                         type="range"
                         min="0"
                         max="100"
                         value={progress}
                         onChange={handleSeek}
-                        className="flex-1 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-sm hover:[&::-webkit-slider-thumb]:scale-110 transition-all"
+                        className="flex-1 h-1.5 bg-white/30 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-sm hover:[&::-webkit-slider-thumb]:scale-110 transition-all"
                     />
-                    <span className="text-[10px] text-white/90 font-medium w-6 tabular-nums">{formatTime(duration)}</span>
+                    <span className="text-xs text-white/90 font-medium w-8 tabular-nums">{formatTime(duration)}</span>
                 </div>
             </div>
         </div>
