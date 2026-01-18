@@ -32,25 +32,39 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         e.preventDefault();
         if (message.deletedForEveryone) return;
 
-        // Robust positioning: Flip alignment if near edges
         let x = e.clientX;
         let y = e.clientY;
         const menuWidth = 220;
         const menuHeight = 250;
 
-        // If clicked on the right half of the screen, align menu to the left of the cursor
-        if (x > window.innerWidth / 2) {
-            x = x - menuWidth;
-        }
+        // Check if triggered by the "More Options" button click
+        const triggerButton = e.target.closest('button');
 
-        // If clicked on the bottom half of the screen, align menu upwards from the cursor
-        if (y > window.innerHeight / 2) {
-            y = y - menuHeight;
-        }
+        if (triggerButton) {
+            const rect = triggerButton.getBoundingClientRect();
+            // Anchor to the bottom-left of the button by default, or bottom-right
+            // Let's align the Top-Right of the menu to the Bottom-Right of the button
+            x = rect.right - menuWidth;
+            y = rect.bottom + 5;
 
-        // Add padding to ensure it doesn't touch edges
-        x = Math.max(10, Math.min(x, window.innerWidth - menuWidth - 10));
-        y = Math.max(10, Math.min(y, window.innerHeight - menuHeight - 10));
+            // Collision Detection for Button Anchor
+            // If goes off left edge, align to left of button
+            if (x < 10) x = rect.left;
+
+            // If goes off bottom edge, flip to top
+            if (y + menuHeight > window.innerHeight) {
+                y = rect.top - menuHeight - 5;
+            }
+        } else {
+            // Mouse/Touch Context Menu (Right Click)
+            // Smart positioning: Flip alignment if near edges
+            if (x > window.innerWidth / 2) x = x - menuWidth;
+            if (y > window.innerHeight / 2) y = y - menuHeight;
+
+            // Padding
+            x = Math.max(10, Math.min(x, window.innerWidth - menuWidth - 10));
+            y = Math.max(10, Math.min(y, window.innerHeight - menuHeight - 10));
+        }
 
         setContextMenu({ x, y });
     };

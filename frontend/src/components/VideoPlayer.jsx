@@ -9,6 +9,8 @@ const VideoPlayer = ({ src, poster, autoPlay = false, className = "", isPreview 
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showControls, setShowControls] = useState(false);
 
+    const controlsTimeoutRef = useRef(null);
+
     // Keyboard Shortcuts
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -82,9 +84,19 @@ const VideoPlayer = ({ src, poster, autoPlay = false, className = "", isPreview 
         };
     }, [isPreview]);
 
+    // Cleanup timeout on unmount or play state change
+    useEffect(() => {
+        return () => {
+            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        };
+    }, []);
+
     useEffect(() => {
         if (autoPlay && videoRef.current) {
             videoRef.current.play().catch(() => setIsPlaying(false));
+            // Auto-hide controls if autoplaying
+            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+            controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000);
         }
     }, [autoPlay]);
 
@@ -100,9 +112,13 @@ const VideoPlayer = ({ src, poster, autoPlay = false, className = "", isPreview 
             if (isPreview && !document.fullscreenElement) {
                 containerRef.current?.requestFullscreen();
             }
+            // Auto hide controls after play
+            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+            controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000);
         } else {
             video.pause();
             setIsPlaying(false);
+            setShowControls(true); // Always show when paused
         }
     };
 
@@ -119,6 +135,17 @@ const VideoPlayer = ({ src, poster, autoPlay = false, className = "", isPreview 
             containerRef.current?.requestFullscreen();
         } else {
             document.exitFullscreen();
+        }
+    };
+
+    const handleMouseMove = () => {
+        setShowControls(true);
+        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+
+        if (isPlaying) {
+            controlsTimeoutRef.current = setTimeout(() => {
+                setShowControls(false);
+            }, 2500);
         }
     };
 
@@ -142,8 +169,8 @@ const VideoPlayer = ({ src, poster, autoPlay = false, className = "", isPreview 
     return (
         <div
             ref={containerRef}
-            className={`relative group bg-black overflow-hidden rounded-xl ${className}`}
-            onMouseMove={() => setShowControls(true)}
+            className={`relative group bg-black overflow-hidden rounded-xl ${className} ${!showControls && isPlaying ? 'cursor-none' : ''}`}
+            onMouseMove={handleMouseMove}
             onMouseLeave={() => setShowControls(false)}
             onClick={togglePlay}
         >
