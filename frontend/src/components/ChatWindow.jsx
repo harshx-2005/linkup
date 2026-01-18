@@ -767,7 +767,8 @@ const ChatWindow = ({
 
             {/* Messages */}
             <div
-                className="flex-1 overflow-y-auto p-4 min-h-0"
+                className="flex-1 overflow-y-auto overflow-x-hidden p-4 min-h-0 scroll-smooth custom-scrollbar"
+                id="messages-container"
                 onScroll={(e) => { if (e.target.scrollTop === 0) { /* onLoadMore() */ } }}
             >
                 {filteredMessages.map((msg) => (
