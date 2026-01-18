@@ -117,7 +117,10 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
             className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-1 group relative`}
             onMouseEnter={() => setShowActions(true)}
             onMouseLeave={() => setShowActions(false)}
-            onContextMenu={(e) => e.preventDefault()}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                handleContextMenu(e);
+            }}
         >
             {/* Visual Context Menu Trigger (Three Dots) - Visible on Hover */}
             <button

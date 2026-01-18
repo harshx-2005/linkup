@@ -512,7 +512,7 @@ const ChatWindow = ({
     const isUploading = Object.keys(uploadingFiles).length > 0;
 
     return (
-        <div className="h-full flex flex-col bg-transparent relative overflow-hidden">
+        <div className="flex flex-col bg-transparent relative overflow-hidden h-full">
             {/* [NEW] Summary Modal */}
             {summaryResult && (
                 <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1183,17 +1183,31 @@ const ChatWindow = ({
                         message={messageToForward}
                         onClose={() => setShowForwardModal(false)}
                         currentUser={currentUser}
-                        onForward={(selectedChatIds, msg) => {
-                            // Handle Forward Logic Here or in Modal
-                            // Usually Modal calls API, here we just maybe show success or refresh
-                            // For now, assume modal handles the API calls
-                            setShowForwardModal(false);
-                            // Maybe add a toast?
+                        onForward={async (selectedChatIds, msg) => {
+                            // Forward Logic
+                            try {
+                                const token = localStorage.getItem('token');
+                                await Promise.all(selectedChatIds.map(chatId =>
+                                    axios.post('/api/messages', {
+                                        conversationId: chatId,
+                                        content: msg.content,
+                                        messageType: msg.messageType,
+                                        isForwarded: true
+                                        // If attachments, we might need to handle them, but usually content URL is enough
+                                    }, {
+                                        headers: { Authorization: `Bearer ${token}` }
+                                    })
+                                ));
+                                setShowForwardModal(false);
+                                alert('Message forwarded successfully!');
+                            } catch (err) {
+                                console.error("Forwarding failed", err);
+                                alert('Failed to forward message.');
+                            }
                         }}
                     />
                 )
             }
-            {/* Group Call */}
         </div >
     );
 };
