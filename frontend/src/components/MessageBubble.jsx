@@ -144,18 +144,8 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                 handleContextMenu(e);
             }}
         >
-            {/* Premium "More Options" Chevron - Internal & Subtle */}
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handleContextMenu(e);
-                }}
-                className={`absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white/90 hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100 z-50 shadow-sm border border-white/10`}
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                </svg>
-            </button>
+            {/* Premium "More Options" Chevron - Internal & Subtle - MOVED INSIDE BUBBLE */}
+
             {/* Custom Context Menu */}
             {contextMenu && (
                 <>
@@ -258,6 +248,19 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                         : 'bg-[#18181b]/90 backdrop-blur-md border border-white/5 text-gray-100 rounded-[1.25rem] rounded-tl-sm shadow-md'
                     } ${message.deletedForEveryone ? 'italic text-gray-400 border border-gray-600/30 bg-white/5 shadow-none px-4 py-2' : ''}`}
             >
+                {/* Premium "More Options" Chevron - Internal & Subtle */}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleContextMenu(e);
+                    }}
+                    className={`absolute top-1 right-1 w-7 h-7 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white/80 hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100 z-50 shadow-sm border border-white/5`}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                    </svg>
+                </button>
+
                 {!isOwn && isGroup && message.User?.name && !message.deletedForEveryone && message.User.name !== 'LinkUp AI' && (
                     <span className={`text-[11px] font-bold mb-1 px-4 pt-2 ${['text-pink-500', 'text-purple-500', 'text-indigo-500', 'text-blue-500', 'text-green-500', 'text-teal-500'][message.User.name.length % 6]
                         }`}>
