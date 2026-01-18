@@ -21,20 +21,20 @@ const ImageLightbox = ({ imageUrl, onClose }) => {
         >
             {/* Toolbar */}
             <div className="absolute top-4 right-4 flex items-center gap-4 z-50">
-                <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => setScale(s => Math.max(0.5, s - 0.2))} className="p-2 text-white hover:bg-white/10 rounded-full" title="Zoom Out">
+                <div className="flex bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => setScale(s => Math.max(0.5, s - 0.2))} className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Zoom Out">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
                     </button>
-                    <button onClick={() => setScale(s => Math.min(3, s + 0.2))} className="p-2 text-white hover:bg-white/10 rounded-full" title="Zoom In">
+                    <button onClick={() => setScale(s => Math.min(3, s + 0.2))} className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Zoom In">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
                     </button>
-                    <button onClick={() => setRotation(r => r + 90)} className="p-2 text-white hover:bg-white/10 rounded-full" title="Rotate">
+                    <button onClick={() => setRotation(r => r + 90)} className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Rotate">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38" /></svg>
                     </button>
                 </div>
 
                 <button
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 hover:bg-white/10 text-white transition-colors border border-white/10"
                     onClick={onClose}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>

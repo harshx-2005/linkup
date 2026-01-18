@@ -512,7 +512,7 @@ const ChatWindow = ({
     const isUploading = Object.keys(uploadingFiles).length > 0;
 
     return (
-        <div className="flex flex-col bg-transparent relative overflow-hidden h-full">
+        <div className="flex flex-col bg-transparent relative overflow-hidden overflow-x-hidden h-full">
             {/* [NEW] Summary Modal */}
             {summaryResult && (
                 <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1192,8 +1192,8 @@ const ChatWindow = ({
                                         conversationId: chatId,
                                         content: msg.content,
                                         messageType: msg.messageType,
-                                        isForwarded: true
-                                        // If attachments, we might need to handle them, but usually content URL is enough
+                                        isForwarded: true,
+                                        attachmentUrl: msg.attachmentUrl || (msg.messageType === 'image' ? msg.content : null)
                                     }, {
                                         headers: { Authorization: `Bearer ${token}` }
                                     })
