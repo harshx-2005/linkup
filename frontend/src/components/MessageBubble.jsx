@@ -47,6 +47,14 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
         e.preventDefault();
         if (message.deletedForEveryone) return;
 
+        // Toggle logic: If menu is already open, close it.
+        // We rely on onMouseDown={e => e.stopPropagation()} on the trigger to prevent
+        // the global click-outside listener from closing it first.
+        if (contextMenu) {
+            setContextMenu(null);
+            return;
+        }
+
         let x = e.clientX;
         let y = e.clientY;
         const menuWidth = 220;
@@ -327,6 +335,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
             >
                 {/* Premium "More Options" Chevron - Internal & Subtle */}
                 <button
+                    onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                         e.stopPropagation();
                         handleContextMenu(e);
@@ -448,7 +457,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                             </div>
                                         )}
                                         {message.messageType === 'audio' && (
-                                            <div className="p-2 flex flex-col gap-2">
+                                            <div className="p-2 pt-3 flex flex-col gap-2">
                                                 <CustomAudioPlayer src={message.attachmentUrl} />
 
                                                 {/* Transcription UI */}
