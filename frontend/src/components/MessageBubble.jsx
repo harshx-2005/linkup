@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import VideoPlayer from './VideoPlayer';
 
 const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward }) => {
     const [showActions, setShowActions] = useState(false);
@@ -128,7 +129,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                     e.stopPropagation();
                     handleContextMenu(e);
                 }}
-                className={`absolute top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/50 text-white opacity-100 hover:bg-black/90 z-20 shadow-xl transition-all ${isOwn ? '-left-12' : '-right-12'}`}
+                className={`absolute top-2 p-1.5 rounded-full bg-black/40 text-white/70 hover:text-white hover:bg-black/60 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 ${isOwn ? '-left-10' : '-right-10'}`}
                 title="More Options"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -315,13 +316,10 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                             />
                                         )}
                                         {message.messageType === 'video' && (
-                                            <div className="w-full aspect-video bg-black relative">
-                                                <video
+                                            <div className="w-full aspect-video bg-black relative group/video">
+                                                <VideoPlayer
                                                     src={message.attachmentUrl}
-                                                    controls
-                                                    playsInline
-                                                    preload="metadata"
-                                                    className="w-full h-full object-contain"
+                                                    className="w-full h-full"
                                                 />
                                             </div>
                                         )}
