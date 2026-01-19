@@ -964,11 +964,7 @@ const ChatWindow = ({
                 ) : (
                     /* Normal Input Area or Sent Banner */
                     <>
-                        {conversation.requestStatus === 'pending' && String(conversation.createdBy) === String(currentUser.id) && (
-                            <div className="px-5 py-3 bg-blue-500/10 border border-blue-500/20 mx-4 mb-4 rounded-xl text-blue-200 text-sm text-center backdrop-blur-sm">
-                                Message request sent. Following up before acceptance depends on their privacy settings.
-                            </div>
-                        )}
+
 
                         <div className={`p-3 md:p-4 bg-black/80 backdrop-blur-xl border-t border-[#27272a] relative transition-all duration-300 ${isRecording ? 'border-red-500/30' : ''}`} ref={footerRef}>
                             {/* [NEW] Reply Banner */}
