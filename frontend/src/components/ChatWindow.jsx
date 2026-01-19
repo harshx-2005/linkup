@@ -925,9 +925,8 @@ const ChatWindow = ({
             }
 
             {/* Request Actions Overlay for Receiver */}
-            {/* Request Actions Overlay for Receiver */}
             {
-                conversation.requestStatus === 'pending' && String(conversation.createdBy) !== String(currentUser.id) ? (
+                conversation.requestStatus === 'pending' && String(conversation.createdBy) !== String(currentUser.id) && messages.length > 0 ? (
                     <div className="p-4 bg-[#18181b]/90 backdrop-blur-xl border-t border-[#2a2a2e] flex flex-col items-center justify-center gap-3 z-30 m-4 rounded-3xl shadow-2xl">
                         <p className="text-gray-200 font-medium text-lg">Message Request</p>
                         <p className="text-sm text-gray-400 text-center max-w-md leading-relaxed">

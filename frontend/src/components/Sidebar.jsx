@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import CreateChatModal from './CreateChatModal';
+import SettingsModal from './SettingsModal';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ conversations = [], onSelectConversation, selectedConversation, onlineUsers, onNewConversation }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showCreateChat, setShowCreateChat] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
     const { user } = useAuth();
 
     const safeConversations = Array.isArray(conversations) ? conversations : [];
@@ -26,10 +28,7 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                 </h1>
                 <div className="flex gap-2">
                     <button
-                        onClick={() => {
-                            // TODO: Trigger Global Settings or Profile
-                            alert("Settings clicked");
-                        }}
+                        onClick={() => setShowSettings(true)}
                         className="p-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition cursor-pointer"
                         title="Settings"
                     >
@@ -191,6 +190,10 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                         setShowCreateChat(false);
                     }}
                 />
+            )}
+
+            {showSettings && (
+                <SettingsModal onClose={() => setShowSettings(false)} />
             )}
         </div>
     );
