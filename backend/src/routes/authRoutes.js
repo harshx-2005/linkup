@@ -8,5 +8,6 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/admin-login', adminLogin);
 router.get('/me', verifyToken, getMe);
+router.put('/update-profile', verifyToken, require('../controllers/authController').updateProfile);
 
 module.exports = router;

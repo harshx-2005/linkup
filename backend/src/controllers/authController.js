@@ -145,9 +145,42 @@ const getMe = async (req, res) => {
     }
 };
 
+const updateProfile = async (req, res) => {
+    try {
+        const { name, bio } = req.body;
+        const userId = req.user.id;
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (name) user.name = name;
+        if (bio !== undefined) user.bio = bio; // Allow empty string
+
+        await user.save();
+
+        res.json({
+            message: 'Profile updated successfully.',
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar,
+                bio: user.bio,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error('Update Profile Error:', error);
+        res.status(500).json({ message: 'Server error.' });
+    }
+};
+
 module.exports = {
     register,
     login,
     adminLogin,
     getMe,
+    updateProfile,
 };

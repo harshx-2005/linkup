@@ -7,6 +7,7 @@ import ImageLightbox from './ImageLightbox';
 import CameraModal from './CameraModal';
 import UserProfileModal from './UserProfileModal';
 import ForwardMessageModal from './ForwardMessageModal';
+import { useSettings } from '../context/SettingsContext';
 
 
 const ChatWindow = ({
@@ -43,6 +44,8 @@ const ChatWindow = ({
     const fileInputRef = useRef(null);
     const mediaInputRef = useRef(null);
     const footerRef = useRef(null);
+
+    const { playMessageSound } = useSettings();
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -352,6 +355,7 @@ const ChatWindow = ({
             // Check if message is from OTHER user (not me)
             if (lastMsg && String(lastMsg.senderId) !== String(currentUser.id)) {
                 handleSmartReply();
+                playMessageSound();
             }
         }
         prevMessagesLengthRef.current = messages.length;
@@ -926,7 +930,10 @@ const ChatWindow = ({
 
             {/* Request Actions Overlay for Receiver */}
             {
-                conversation.requestStatus === 'pending' && String(conversation.createdBy) !== String(currentUser.id) && messages.length > 0 ? (
+                conversation.requestStatus === 'pending' &&
+                    String(conversation.createdBy) !== String(currentUser.id) &&
+                    messages.length > 0 &&
+                    !messages.some(msg => String(msg.senderId) === String(currentUser.id)) ? (
                     <div className="p-4 bg-[#18181b]/90 backdrop-blur-xl border-t border-[#2a2a2e] flex flex-col items-center justify-center gap-3 z-30 m-4 rounded-3xl shadow-2xl">
                         <p className="text-gray-200 font-medium text-lg">Message Request</p>
                         <p className="text-sm text-gray-400 text-center max-w-md leading-relaxed">
