@@ -525,7 +525,8 @@ const Chat = () => {
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
                 { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' }
+                { urls: 'stun:stun4.l.google.com:19302' },
+                { urls: 'stun:global.stun.twilio.com:3478' }
             ],
             bundlePolicy: 'max-bundle',
             icecandidatePoolSize: 10
@@ -567,6 +568,12 @@ const Chat = () => {
 
         pc.oniceconnectionstatechange = () => {
             console.log("ICE Connection State:", pc.iceConnectionState);
+            if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+                toast.error(`Connection ${pc.iceConnectionState}. Firewall/Network preventing call.`);
+            }
+            if (pc.iceConnectionState === 'connected') {
+                toast.success("Connection Established!");
+            }
         };
 
         return pc;

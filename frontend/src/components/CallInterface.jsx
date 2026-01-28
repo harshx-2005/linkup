@@ -275,6 +275,7 @@ const CallInterface = ({ call, isIncoming, onAccept, onReject, onEnd, switchRequ
                     ref={remoteVideoRef}
                     autoPlay
                     playsInline
+                    muted={false}
                     onPlaying={handleVideoPlaying}
                     className={`w-full h-full object-cover transition-opacity duration-300 ${remoteStreamAttached && call.isVideo ? 'opacity-100' : 'opacity-0'}`}
                 />
