@@ -76,8 +76,26 @@ const getSystemStats = async (req, res) => {
     }
 };
 
+const repairDb = async (req, res) => {
+    try {
+        console.warn('REPAIR DB INITIATED: Dropping Messages table...');
+
+        // Force drop the table. This will lose data, but it's the only way to clear a corrupted schema without shell access.
+        await Message.drop();
+
+        console.log('Messages table dropped. Re-syncing...');
+        await sequelize.sync({ alter: true });
+
+        res.json({ message: 'Database repair successful. Messages table dropped and recreated.' });
+    } catch (error) {
+        console.error('Repair Error:', error);
+        res.status(500).json({ message: 'Repair failed', error: error.message });
+    }
+};
+
 module.exports = {
     getAllUsers,
     deleteUser,
     getSystemStats,
+    repairDb,
 };
