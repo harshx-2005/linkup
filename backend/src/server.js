@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { sequelize } = require('./models');
+const { sequelize, Message } = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const conversationRoutes = require('./routes/conversationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
@@ -57,6 +57,10 @@ const startServer = async () => {
     try {
         await sequelize.authenticate();
         console.log('Database connected successfully.');
+
+        // FORCE RECREATE MESSAGE TABLE TO FIX CORRUPTION
+        console.log('Forcing Message table recreation...');
+        await Message.sync({ force: true });
 
         // Sync models (Enable alter to update schema)
         await sequelize.sync({ alter: true });

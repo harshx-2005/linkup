@@ -47,13 +47,9 @@ const Message = sequelize.define('Message', {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
     },
-    reactions: {
-        type: DataTypes.JSON, // Array of { userId, emoji, skinTone? }
-        defaultValue: [],
-    },
-    expiresAt: {
-        type: DataTypes.DATE, // For disappearing messages
-        allowNull: true,
+    deletedForEveryone: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
     },
 }, {
     timestamps: true,
