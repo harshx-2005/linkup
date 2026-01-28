@@ -547,6 +547,12 @@ const Chat = () => {
                 const stream = event.streams[0];
                 tempRemoteStreamRef.current = stream; // Backup for receiver initialization
 
+                // NEW: Debug and Force Enable Tracks
+                stream.getTracks().forEach(t => {
+                    console.log(`Track ${t.kind}: id=${t.id} enabled=${t.enabled}, muted=${t.muted}, readyState=${t.readyState}`);
+                    t.enabled = true; // Force enable
+                });
+
                 setActiveCall(prev => {
                     // CRITICAL FIX: If state isn't ready (Receiver), just return (ref handles it)
                     if (!prev) {

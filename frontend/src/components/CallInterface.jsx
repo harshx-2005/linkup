@@ -116,7 +116,9 @@ const CallInterface = ({ call, isIncoming, onAccept, onReject, onEnd, switchRequ
             remoteVideoRef.current.srcObject = call.remoteStream;
 
             remoteVideoRef.current.play().catch(e => {
-                console.error("Error auto-playing remote stream:", e);
+                if (e.name !== 'AbortError') {
+                    console.error("Error auto-playing remote stream:", e);
+                }
             });
         }
     }, [call.remoteStream]);
