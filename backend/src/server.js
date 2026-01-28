@@ -58,12 +58,9 @@ const startServer = async () => {
         await sequelize.authenticate();
         console.log('Database connected successfully.');
 
-        // FORCE RECREATE MESSAGE TABLE TO FIX CORRUPTION
-        console.log('Forcing Message table recreation...');
-        await Message.sync({ force: true });
-
         // Sync models (Enable alter to update schema)
         await sequelize.sync({ alter: true });
+        console.log('Database synced.');
         console.log('Database synced.');
 
 
