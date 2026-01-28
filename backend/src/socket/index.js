@@ -243,7 +243,7 @@ const initializeSocket = (server) => {
         // Helper to log call duration
         const logGroupCall = async (conversationId, callData, endReason) => {
             const durationMs = Date.now() - (callData.startTime || Date.now());
-            if (durationMs < 100) return; // Ignore extremely short clicks, but allow quick tests
+            if (durationMs < 100) return; // Ignore extremely short clicks
 
             const seconds = Math.floor(durationMs / 1000);
             const minutes = Math.floor(seconds / 60);
@@ -251,12 +251,30 @@ const initializeSocket = (server) => {
             const durationText = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 
             try {
-                // Ensure we have a valid senderId (fallback to 1 if missing, to prevent crash)
-                // In production, we should ensure logic guarantees initiatorId.
-                const safeSenderId = callData.initiatorId || (onlineUsers.get(callData.socketId)) || 1;
+                // Ensure we have a valid senderId.
+                // Priority: Initiator -> Socket User -> First Online User -> 1 (System Fallback)
+                let safeSenderId = callData.initiatorId;
+
+                if (!safeSenderId) {
+                    safeSenderId = onlineUsers.get(callData.socketId);
+                }
+
+                // Final fallback if user disconnected before we could look them up
+                if (!safeSenderId) {
+                    // Try to find ANY admin or system user? 
+                    // For now, we reuse the first available online user or just hardcode if your DB has a 'system' user (id: 1 usually)
+                    // Checking DB for a valid user might be async and slow.
+                    // Let's assume ID 1 exists or use a random one from onlineUsers?
+                    // Better: Use `null` if your Message model allows it (msgType: system)?
+                    // If Model requires senderId, we MUST provide one.
+                    const firstOnline = onlineUsers.keys().next().value;
+                    safeSenderId = firstOnline || 1;
+                }
+
+                console.log(`Logging call for convo ${conversationId}, sender: ${safeSenderId}, duration: ${durationText}`);
 
                 const message = await Message.create({
-                    conversationId: conversationId, // Fix: camelCase to match Model
+                    conversationId: conversationId,
                     senderId: safeSenderId,
                     content: JSON.stringify({
                         type: 'call_log',
@@ -268,7 +286,6 @@ const initializeSocket = (server) => {
                 });
 
                 // Emit new message
-                // Emit new message using the event name the frontend expects
                 io.to(String(conversationId)).emit('receive_message', message);
             } catch (err) {
                 console.error('Failed to log group call:', err);
@@ -327,18 +344,20 @@ const initializeSocket = (server) => {
                     if (roomSize <= 1) {
                         // GRACE PERIOD for Disconnects/Refresh
                         setTimeout(() => {
-                            const currentRoom = io.sockets.adapter.rooms.get(room);
-                            // Force string key
+                            // Re-check: Is the call still active in our memory?
                             if (activeGroupCalls.has(String(conversationId))) {
-                                // Check real-time room size again
-                                const updatedRoom = io.sockets.adapter.rooms.get(room);
-                                if (!updatedRoom || updatedRoom.size === 0) {
+                                const currentRoom = io.sockets.adapter.rooms.get(room);
+
+                                // Proper check: If room is undefined OR size is 0
+                                if (!currentRoom || currentRoom.size === 0) {
+                                    console.log(`Grace period over for ${conversationId}. Room empty. Cleaning up.`);
                                     const callData = activeGroupCalls.get(String(conversationId));
                                     activeGroupCalls.delete(String(conversationId));
 
                                     io.to(String(conversationId)).emit('group_call_ended', { conversationId });
                                     if (callData) logGroupCall(conversationId, callData, 'last_user_disconnected');
-                                    console.log(`Group call in ${conversationId} ended (last user disconnected after grace period).`);
+                                } else {
+                                    console.log(`Grace period check: Room ${conversationId} is NOT empty. Size: ${currentRoom.size}. Keeping call alive.`);
                                 }
                             }
                         }, 4000);

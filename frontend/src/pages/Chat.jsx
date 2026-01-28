@@ -833,13 +833,17 @@ const Chat = () => {
     };
 
 
-    const handleJoinGroupCall = (convId) => {
+    const handleJoinGroupCall = (arg) => {
         // Stop Ringing
         stopRingtone();
         setIncomingGroupCall(null);
 
         // Determine ID (arg or from state)
-        const targetId = convId || incomingGroupCall?.conversationId;
+        // Check if arg is an event (object) or ID (string/number)
+        let targetId = arg;
+        if (typeof arg === 'object') targetId = null;
+
+        targetId = targetId || incomingGroupCall?.conversationId;
         if (!targetId) return;
 
         // Ensure we are selected
@@ -958,7 +962,7 @@ const Chat = () => {
         }
     };
 
-    const handleRejectCall = () => {
+    const handleRejectCall = async () => {
         if (incomingCall && incomingCall.from) {
             socket.emit('reject_call', { to: incomingCall.from });
             // Send declined log
@@ -969,22 +973,26 @@ const Chat = () => {
                     isVideo: incomingCall.isVideo,
                     duration: null
                 });
-                // We need to use handleSendMessage. But we can't await it easily here or don't need to.
-                // Also, we need `selectedConversation` to be correct?
-                // If getting incoming call, `selectedConversation` might not be the caller?
-                // RISK: `selectedConversation` might be null or wrong.
-                // SAFEGUARD: Only log if we are in that conversation?
-                // USER REQUIREMENT: "call logs in chat".
-                // Should be inserted into the relevant conversation.
-                // `handleSendMessage` uses `selectedConversation.id`.
-                // If `incomingCall.fromUserId` != `selectedConversation.otherUserId`, we can't use `handleSendMessage` as is.
-                // We'd need to manually call API with `incomingCall.fromUserId`'s conversationId.
-                // Complexity: Finding the conversation ID for the caller.
-                // Simpler: Just skip log if not in conversation?
-                // Or: User is usually "forced" to specific flow?
-                // Let's rely on `handleSendMessage` if `selectedConversation` matches caller.
-                if (selectedConversation && String(selectedConversation.otherUserId) === String(incomingCall.fromUserId)) {
-                    handleSendMessage(logContent, 'system');
+
+                // Find valid conversation to log to
+                // We need to find a conversation where otherUserId === incomingCall.fromUserId
+                const targetConv = conversations.find(c => String(c.otherUserId) === String(incomingCall.fromUserId));
+
+                if (targetConv) {
+                    // Manually send using axios to avoid UI dependeny
+                    const token = localStorage.getItem('token');
+                    await axios.post('/api/messages/send', {
+                        conversationId: targetConv.id,
+                        content: logContent,
+                        messageType: 'system'
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }).catch(e => console.error("Failed to log decline:", e));
+
+                    // Update local if selected
+                    if (selectedConversation && String(selectedConversation.id) === String(targetConv.id)) {
+                        fetchMessages(targetConv.id); // Refresh safely
+                    }
                 }
             } catch (e) { console.error(e); }
         }
@@ -1075,14 +1083,27 @@ const Chat = () => {
 
             // Check if we can log (same conversation safeguard)
             // `activeCall.toUserId` (if caller) or `activeCall.fromUserId` (if receiver? activeCall doesn't store fromUserId usually, it stores `toUserId` or we need to derive).
-            // `activeCall` has `toUserId` set in `handleStartCall`.
-            // `handleAcceptCall` sets `toUserId`.
-            // So `activeCall.toUserId` is the "Partner".
-            // If `selectedConversation.otherUserId` matches `activeCall.toUserId`, we log.
-            if (selectedConversation && activeCall && String(selectedConversation.otherUserId) === String(activeCall.toUserId)) {
-                handleSendMessage(logContent, 'system');
-            }
+            const partnerId = activeCall.isCaller ? activeCall.toUserId : activeCall.fromUserId;
 
+            // Find conversation with this partner
+            const targetConv = conversations.find(c => String(c.otherUserId) === String(partnerId));
+
+            if (targetConv) {
+                const token = localStorage.getItem('token');
+                axios.post('/api/messages/send', {
+                    conversationId: targetConv.id,
+                    content: logContent,
+                    messageType: 'system'
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }).then(() => {
+                    if (selectedConversation && String(selectedConversation.id) === String(targetConv.id)) {
+                        // Update UI or refetch?
+                        // Adding to messages manually might duplicate if socket comes back?
+                        // Let socket handle it.
+                    }
+                }).catch(e => console.error("Failed to log call end:", e));
+            }
         } catch (e) { console.error("Log error", e); }
 
         setActiveCall(null);
@@ -1429,16 +1450,25 @@ const Chat = () => {
             )}
 
             {/* Render Group Call Overlay */}
-            {activeGroupSession && selectedConversation && String(activeGroupSession.conversationId) === String(selectedConversation.id) && (
-                <GroupCall
-                    conversationId={selectedConversation.id}
-                    currentUser={user}
-                    socket={socket}
-                    onClose={handleEndGroupCall}
-                    isVideo={activeGroupSession.type === 'video'}
-                    participants={selectedConversation.Users || []}
-                    initiatorId={activeCallConversations.get(String(selectedConversation.id))}
-                />
+            {activeGroupSession && (
+                (() => {
+                    const sessionConv = conversations.find(c => String(c.id) === String(activeGroupSession.conversationId));
+                    // Fallback to activeCallConversations if conv not found (rare, but possible if new)
+                    // If sessionConv is missing, we might have issues.
+                    if (!sessionConv) return null;
+
+                    return (
+                        <GroupCall
+                            conversationId={activeGroupSession.conversationId}
+                            currentUser={user}
+                            socket={socket}
+                            onClose={handleEndGroupCall}
+                            isVideo={activeGroupSession.type === 'video'}
+                            participants={sessionConv.Users || []}
+                            initiatorId={activeCallConversations.get(String(activeGroupSession.conversationId))}
+                        />
+                    );
+                })()
             )}
         </div>
     );
