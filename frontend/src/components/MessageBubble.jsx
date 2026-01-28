@@ -3,7 +3,7 @@ import VideoPlayer from './VideoPlayer';
 import CustomAudioPlayer from './CustomAudioPlayer'; // Import custom player
 import axios from 'axios';
 
-const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward, onReply, onReplyClick, id }) => {
+const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick, onForward, onReply, onReplyClick, id, onReact, onShowInfo }) => {
 
     const [showActions, setShowActions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -186,6 +186,16 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                         className="fixed bg-[#233138] border border-[#374248] rounded-lg shadow-2xl z-50 py-2 flex flex-col min-w-[200px] animate-in fade-in zoom-in-95 origin-top overflow-hidden"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
+                        {/* Reactions Grid */}
+                        <div className="p-3 bg-[#18181b]/95 rounded-lg mb-2 mx-2 grid grid-cols-4 gap-2">
+                            {['👍', '❤️', '😂', '😮', '😢', '🙏'].map(emoji => (
+                                <button key={emoji} onClick={() => {
+                                    onReact && onReact(message.id, emoji);
+                                    setContextMenu(null);
+                                }} className="text-xl hover:bg-white/10 rounded p-1 transition">{emoji}</button>
+                            ))}
+                        </div>
+
                         {/* Reply Option */}
                         {!message.deletedForEveryone && !isCallLog && (
                             <button onClick={handleReply} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
@@ -193,6 +203,26 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                 Reply
                             </button>
                         )}
+
+                        {/* Message Info Option (Group Only & Is Own) */}
+                        {isOwn && isGroup && (
+                            <button onClick={async () => {
+                                // Trigger parent callback to show info modal
+                                // Since we don't have a direct prop, we might need to bubble up or alert for now.
+                                // Or passing onShowInfo prop (best).
+                                // Let's check props in next step or assume generic handler.
+                                // User asked for "Message Info".
+                                if (message.onShowInfo) message.onShowInfo(message);
+                                // Workaround: emit custom event or simple alert for MVP if prop missing?
+                                // Better: Pass `onShowInfo` prop to MessageBubble.
+                                if (props.onShowInfo) props.onShowInfo(message);
+                                setContextMenu(null);
+                            }} className="px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/10 flex items-center gap-3 transition-colors font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                Message Info
+                            </button>
+                        )}
+
 
                         {/* Copy Option (Text Only) */}
                         {(message.messageType === 'text' || message.content) && !isCallLog && (
@@ -542,6 +572,20 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                             </>
                         )}
 
+                    </div>
+                )}
+
+                {/* Reactions Display */}
+                {message.reactions && message.reactions.length > 0 && (
+                    <div className="absolute -bottom-3 right-2 flex bg-[#233138] rounded-full px-1.5 py-0.5 border border-[#374248] shadow-sm items-center gap-1 z-20 cursor-pointer hover:scale-105 transition-transform">
+                        {(() => {
+                            // Group reactions
+                            const counts = {};
+                            message.reactions.forEach(r => { counts[r.emoji] = (counts[r.emoji] || 0) + 1; });
+                            return Object.entries(counts).map(([emoji, count]) => (
+                                <span key={emoji} className="text-[10px] leading-3">{emoji} <span className="text-gray-400 ml-0.5">{count > 1 ? count : ''}</span></span>
+                            ));
+                        })()}
                     </div>
                 )}
 

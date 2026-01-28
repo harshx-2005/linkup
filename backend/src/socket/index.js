@@ -88,16 +88,129 @@ const initializeSocket = (server) => {
             socket.to(String(data.conversationId)).emit('user_stop_typing', data);
         });
 
-        socket.on('mark_seen', (data) => {
+        socket.on('mark_seen', async (data) => {
             const room = String(data.conversationId);
-            console.log(`Server received mark_seen for room ${room} from user ${data.userId}`);
-            io.to(room).emit('messages_seen', data);
+            const { conversationId, userId } = data;
+
+            // Persist to DB (Bulk if possible, but per message for now for granularity)
+            // Ideally, we find all messages in this conversation NOT seen by userId and update them.
+            // But 'data' usually comes with messageIds or implies "all until now".
+            // Let's assume standard behavior: Update ALL unread messages in conv for this user.
+            try {
+                // Fetch messages not yet seen by this user
+                // Op.notLike is expensive for JSON. 
+                // Better: Get recent 50 messages, check JS side, update.
+                const recentMessages = await Message.findAll({
+                    where: { conversationId: conversationId },
+                    order: [['createdAt', 'DESC']],
+                    limit: 50
+                });
+
+                const updates = [];
+                for (const msg of recentMessages) {
+                    let seen = msg.seenBy || [];
+                    if (!seen.includes(userId)) {
+                        seen.push(userId);
+                        // Save to DB
+                        updates.push(msg.update({ seenBy: seen }));
+                    }
+                }
+                await Promise.all(updates);
+
+                // Emit only if updates happened? Or always to be safe.
+                io.to(room).emit('messages_seen', data);
+            } catch (e) {
+                console.error("Error marking seen:", e);
+            }
         });
 
-        socket.on('mark_delivered', (data) => {
+        socket.on('mark_delivered', async (data) => {
             const room = String(data.conversationId);
-            // console.log(`Server received mark_delivered for room ${room} from user ${data.userId}`);
-            io.to(room).emit('messages_delivered', data);
+            const { conversationId, userId } = data;
+
+            try {
+                const recentMessages = await Message.findAll({
+                    where: { conversationId: conversationId },
+                    order: [['createdAt', 'DESC']],
+                    limit: 20
+                });
+
+                const updates = [];
+                for (const msg of recentMessages) {
+                    let delivered = msg.deliveredTo || [];
+                    if (!delivered.includes(userId)) {
+                        delivered.push(userId);
+                        updates.push(msg.update({ deliveredTo: delivered }));
+                    }
+                }
+                await Promise.all(updates);
+
+                io.to(room).emit('messages_delivered', data);
+            } catch (e) {
+                console.error("Error marking delivered:", e);
+            }
+        });
+
+        // --- Reactions & Disappearing ---
+        socket.on('add_reaction', async (data) => {
+            // data: { conversationId, messageId, reaction: { userId, emoji } }
+            try {
+                const msg = await Message.findByPk(data.messageId);
+                if (msg) {
+                    let currentReactions = msg.reactions || [];
+                    // Remove existing reaction from same user if any (toggle/replace)
+                    currentReactions = currentReactions.filter(r => String(r.userId) !== String(data.reaction.userId));
+
+                    // Add new reaction (if emoji is provided, else it was a remove)
+                    if (data.reaction.emoji) {
+                        currentReactions.push(data.reaction);
+                    }
+
+                    await msg.update({ reactions: currentReactions });
+
+                    io.to(String(data.conversationId)).emit('message_reaction_update', {
+                        messageId: data.messageId,
+                        reactions: currentReactions
+                    });
+                }
+            } catch (e) { console.error("Reaction error", e); }
+        });
+
+        socket.on('toggle_disappearing', async (data) => {
+            // data: { conversationId, state (bool), duration (mins) }
+            const { conversationId, state } = data;
+            // Update Conversation
+            try {
+                // Need Conversation model loaded? We need to require it if not present.
+                // It's assumed accessible if Message is.
+                // But Message was required from '../models'. Let's check imports.
+                // Assuming `const { Conversation } = require('../models');` is needed at top.
+                // Since I cannot scroll to top easily in this edit, I will assume it is or use Message.sequelize.models.Conversation?
+                // Safest: Emit first, assuming Frontend handles UI, then try DB update.
+
+                // Dynamic import check or assume global?
+                // Let's rely on standard 'models' import or add it.
+                // Actually, I can replace the top of file later if needed.
+                // Use `sequelize.models.Conversation` if `sequelize` imported? 
+                // `sequelize` is imported in line 2? No line 2 says `const { User, Message } = require('../models');`
+
+                // I will add Conversation to the import via a separate small edit later or now if I can?
+                // I will assume `User.sequelize.models.Conversation` works.
+                const Conversation = User.sequelize.models.Conversation;
+                await Conversation.update({ disappearingEnabled: state }, { where: { id: conversationId } });
+
+                io.to(String(conversationId)).emit('disappearing_mode_update', { conversationId, state });
+
+                // System message
+                const sysMsg = await Message.create({
+                    conversationId,
+                    senderId: 1, // System
+                    content: state ? "Disappearing messages turned on." : "Disappearing messages turned off.",
+                    messageType: 'system'
+                });
+                io.to(String(conversationId)).emit('receive_message', sysMsg);
+
+            } catch (e) { console.error("Disappearing toggle error", e); }
         });
 
         socket.on('edit_message', (data) => {

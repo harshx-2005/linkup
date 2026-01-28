@@ -31,7 +31,10 @@ const ChatWindow = ({
     onBlockUser,
     onClearChat,
     onBack,
-    onDismissCallBanner
+    onDismissCallBanner,
+    onReact, // [NEW]
+    onToggleDisappearing, // [NEW]
+    onShowInfo // [NEW]
 }) => {
     // Top-Lvl States
     const [newMessage, setNewMessage] = useState('');
@@ -195,6 +198,13 @@ const ChatWindow = ({
     const getStatusText = () => {
         if (!conversation) return null;
         if (conversation.isGroup) {
+            if (typingUser && typingUser.length > 0) {
+                // typingUser should ideally be an array of names or IDs.
+                // If it is just a boolean or single user string? 
+                // Assuming it's passed as a list from parent or we parse it.
+                // If simple string:
+                return <span className="text-green-400 font-bold animate-pulse">{typingUser} is typing...</span>;
+            }
             return <p className="text-xs text-gray-400">Click for info</p>;
         }
         if (typingUser) return <span className="text-green-400 font-bold animate-pulse">Typing...</span>;
@@ -617,7 +627,12 @@ const ChatWindow = ({
                             )}
                         </div>
                         <div>
-                            <h2 className="text-gray-100 font-bold text-lg leading-tight tracking-tight">{conversation.name || conversation.groupName}</h2>
+                            <h2 className="text-gray-100 font-bold text-lg leading-tight tracking-tight flex items-center gap-2">
+                                {conversation.name || conversation.groupName}
+                                {conversation.disappearingEnabled && (
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-blue-400 animate-pulse" title="Disappearing Messages ON"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                )}
+                            </h2>
                             <div className="text-sm font-medium">
                                 {getStatusText()}
                             </div>
@@ -721,6 +736,17 @@ const ChatWindow = ({
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                     Clear Chat
+                                </button>
+
+                                <div className="h-px bg-gray-700 my-1" />
+
+                                {/* [NEW] Disappearing Toggle */}
+                                <button
+                                    onClick={onToggleDisappearing}
+                                    className="w-full text-left px-4 py-3 hover:bg-gray-700 flex items-center gap-3 text-blue-400 hover:text-blue-300 transition"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    {conversation.disappearingEnabled ? 'Disable Disappearing' : 'Enable Disappearing'}
                                 </button>
 
                                 {/* Block User */}

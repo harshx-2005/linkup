@@ -19,6 +19,18 @@ const Conversation = sequelize.define('Conversation', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    lastSeen: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    disappearingEnabled: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    disappearingDuration: {
+        type: DataTypes.INTEGER, // in minutes, default 24 hours (1440)
+        defaultValue: 1440,
+    },
     description: {
         type: DataTypes.TEXT,
         allowNull: true,

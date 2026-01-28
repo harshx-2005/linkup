@@ -827,6 +827,30 @@ const Chat = () => {
         setActiveGroupSession({ conversationId: selectedConversation.id, type });
     };
 
+    // [NEW] Reaction Handler
+    const handleReact = (messageId, emoji) => {
+        if (!conversation?.id) return;
+        socket.emit('add_reaction', {
+            conversationId: conversation.id,
+            messageId,
+            reaction: { userId: currentUser.id, emoji }
+        });
+    };
+
+    // [NEW] Message Info State
+    const [messageInfo, setMessageInfo] = useState(null); // The message object to show info for
+
+    // [NEW] Toggle Disappearing
+    const toggleDisappearing = () => {
+        if (!conversation?.id) return;
+        const newState = !conversation.disappearingEnabled;
+        socket.emit('toggle_disappearing', {
+            conversationId: conversation.id,
+            state: newState
+        });
+        setShowMenu(false);
+    };
+
     const handleEndGroupCall = () => {
         setActiveGroupSession(null);
         groupCallStartTimeRef.current = null;
@@ -1229,9 +1253,7 @@ const Chat = () => {
                 if (prev.some(m => m.id === res.data.id)) return prev;
                 return [...prev, res.data];
             });
-            // socket.emit('send_message', res.data); // Removed redundant emit (Controller handles it)
 
-            // Update conversations list immediately
             setConversations(prev => {
                 const updated = prev.map(c => {
                     if (String(c.id) === String(selectedConversation.id)) {
@@ -1249,7 +1271,6 @@ const Chat = () => {
                                     const parsed = JSON.parse(raw.substring(start, end + 1));
                                     if (parsed.type === 'call_log') {
                                         const isMissed = parsed.status === 'missed' || parsed.status === 'declined';
-                                        // Sent message = Outgoing
                                         previewText = isMissed ? '📞 Missed Call' : (parsed.isVideo ? '🎥 Video Call' : '↗ Outgoing Call');
                                     }
                                 }
@@ -1264,7 +1285,6 @@ const Chat = () => {
                     }
                     return c;
                 });
-                // Move to top
                 const current = updated.find(c => String(c.id) === String(selectedConversation.id));
                 const others = updated.filter(c => String(c.id) !== String(selectedConversation.id));
                 return current ? [current, ...others] : prev;
@@ -1281,9 +1301,7 @@ const Chat = () => {
             const res = await axios.put(`/api/messages/${messageId}`, { content: newContent }, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            // Update local state
             setMessages((prev) => prev.map((msg) => msg.id === messageId ? { ...msg, content: newContent } : msg));
-            // Emit socket event
             socket.emit('edit_message', { conversationId: selectedConversation.id, messageId, content: newContent });
         } catch (error) {
             console.error('Error editing message:', error);
@@ -1295,17 +1313,15 @@ const Chat = () => {
             const token = localStorage.getItem('token');
             const res = await axios.delete(`/api/messages/${messageId}`, {
                 headers: { Authorization: `Bearer ${token}` },
-                data: { deleteForEveryone } // Send in body for DELETE request
+                data: { deleteForEveryone }
             });
 
-            // Update local state
             if (deleteForEveryone) {
                 setMessages((prev) => prev.map((msg) => msg.id === messageId ? { ...msg, content: 'This message was deleted', deletedForEveryone: true, messageType: 'text', attachmentUrl: null } : msg));
             } else {
                 setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
             }
 
-            // Emit socket event
             socket.emit('delete_message', { conversationId: selectedConversation.id, messageId, deleteForEveryone });
         } catch (error) {
             console.error('Error deleting message:', error);
@@ -1331,46 +1347,24 @@ const Chat = () => {
         fetchMessages(newConv.id);
         socket.emit('join_conversation', newConv.id);
 
-        // Emit to others only if it likely didn't exist in our list (implies new to us at least)
-        // Or strictly we should check valid newness. 
-        // For now, always emitting ensures consistency but might be redundant.
-        // Keeping existing logic for emit, just fixing UI duplication.
         if (newConv.isGroup) {
             const memberIds = newConv.members.map(m => m.id).filter(id => id !== user.id);
             socket.emit('new_conversation', { conversation: newConv, memberIds });
         } else {
-            // Check if we effectively joined an existing one?
-            // If we are just navigating, maybe don't emit?
-            // `createPrivateConversation` returns the object. 
-            // Let's just keep emitting for now, it's safer for "ensure other side sees it".
             socket.emit('new_conversation', { conversation: newConv, toUserId: newConv.otherUserId });
         }
     };
 
-    // Initial fetch and restore state
     useEffect(() => {
         const init = async () => {
             await fetchConversations();
-
-            // Restore validation
-            const savedConvId = localStorage.getItem('selectedConversationId');
-            if (savedConvId) {
-                // We need the updated list here. `setConversations` is async-ish, 
-                // so we should probably rely on `fetchConversations` returning data 
-                // or just call it and look at the result if we refactor `fetchConversations`.
-                // Actually `fetchConversations` is void.
-                // Let's rely on a separate effect ensuring we restore ONCE conversations are populated?
-                // Or refactor `fetchConversations` to return the data.
-            }
         };
         init();
     }, []);
 
-    // Effect to restore selection once conversations are loaded
     useEffect(() => {
         const savedConvId = localStorage.getItem('selectedConversationId');
         if (savedConvId && conversations.length > 0 && !selectedConversation) {
-            // Find it. Note: IDs might be number vs string issues.
             const found = conversations.find(c => String(c.id) === String(savedConvId));
             if (found) {
                 handleSelectConversation(found);
@@ -1380,7 +1374,6 @@ const Chat = () => {
 
     return (
         <div className="flex h-screen premium-bg text-gray-100 overflow-hidden font-sans">
-            {/* Sidebar with Glass Effect */}
             <div className={`
                 ${selectedConversation ? 'hidden md:flex' : 'flex'} 
                 w-full md:w-[380px] flex-shrink-0 flex-col z-20 h-full
@@ -1395,7 +1388,6 @@ const Chat = () => {
                 />
             </div>
 
-            {/* Chat Window Container */}
             {selectedConversation ? (
                 <div className="flex-1 flex flex-col h-full relative z-10 glass-panel">
                     <ChatWindow
@@ -1407,13 +1399,10 @@ const Chat = () => {
                         socket={socket}
                         onEditMessage={handleEditMessage}
                         onDeleteMessage={handleDeleteMessage}
-
                         onStartCall={handleStartCall}
-                        // Added Group Call Handlers
                         onStartGroupCall={handleStartGroupCall}
                         activeCallConversations={activeCallConversations}
                         onJoinGroupCall={handleJoinGroupCall}
-                        onDismissCallBanner={handleDismissCallBanner}
                         onTyping={() => socket.emit('typing', { conversationId: selectedConversation.id, userId: user.id, userName: user.name })}
                         onStopTyping={() => socket.emit('stop_typing', { conversationId: selectedConversation.id, userId: user.id })}
                         onlineUsers={onlineUsers}
@@ -1421,58 +1410,117 @@ const Chat = () => {
                         onRejectRequest={handleRejectRequest}
                         onBlockUser={handleBlockUser}
                         onClearChat={handleClearChat}
-
                         onBack={() => setSelectedConversation(null)}
+                        onReact={handleReact}
+                        onToggleDisappearing={toggleDisappearing}
+                        onShowInfo={(msg) => setMessageInfo(msg)}
                     />
+
+                    {messageInfo && (
+                        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setMessageInfo(null)}>
+                            <div className="bg-[#2a3942] w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+                                <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-[#202c33]">
+                                    <h3 className="text-white font-bold text-lg">Message Info</h3>
+                                    <button onClick={() => setMessageInfo(null)} className="text-gray-400 hover:text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    </button>
+                                </div>
+                                <div className="p-4 max-h-[60vh] overflow-y-auto">
+                                    <div className="mb-6 bg-[#111b21] p-3 rounded-lg border border-gray-700/50">
+                                        <p className="text-gray-300 text-sm italic mb-1">"{messageInfo.content || (messageInfo.attachmentUrl ? 'Media Attachment' : 'Message')}"</p>
+                                        <p className="text-xs text-gray-500 text-right">{new Date(messageInfo.createdAt).toLocaleTimeString()}</p>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h4 className="text-blue-400 text-sm font-bold uppercase tracking-wide mb-3 flex items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12l5 5L22 7"></path><path d="M12 17l5 5L22 7"></path></svg>
+                                                Read By
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {messageInfo.seenBy && messageInfo.seenBy.length > 0 ? (
+                                                    messageInfo.seenBy.map((uid, i) => (
+                                                        <div key={i} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition">
+                                                            <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold text-white">
+                                                                {uid}
+                                                            </div>
+                                                            <span className="text-gray-200 text-sm">User {uid}</span>
+                                                            <span className="ml-auto text-xs text-blue-400">Read</span>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-gray-500 text-sm italic pl-2">No one yet</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h4 className="text-gray-400 text-sm font-bold uppercase tracking-wide mb-3 flex items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+                                                Delivered To
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {messageInfo.deliveredTo && messageInfo.deliveredTo.length > 0 ? (
+                                                    messageInfo.deliveredTo.map((uid, i) => (
+                                                        <div key={i} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition">
+                                                            <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold text-white">
+                                                                {uid}
+                                                            </div>
+                                                            <span className="text-gray-200 text-sm">User {uid}</span>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-gray-500 text-sm italic pl-2">No one yet</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {(incomingCall || activeCall || incomingGroupCall) && (
+                        <CallInterface
+                            call={activeCall || incomingCall || incomingGroupCall}
+                            isIncoming={!!incomingCall || !!incomingGroupCall}
+                            onAccept={incomingGroupCall ? handleJoinGroupCall : handleAcceptCall}
+                            onReject={incomingGroupCall ? handleRejectGroupCall : handleRejectCall}
+                            onEnd={handleEndCall}
+                            switchRequest={switchRequest}
+                            onRequestVideo={handleRequestVideoSwitch}
+                            onRespondVideo={handleRespondToSwitch}
+                        />
+                    )}
+
+                    {activeGroupSession && (
+                        (() => {
+                            const sessionConv = conversations.find(c => String(c.id) === String(activeGroupSession.conversationId));
+                            if (!sessionConv) return null;
+                            return (
+                                <GroupCall
+                                    conversationId={activeGroupSession.conversationId}
+                                    currentUser={user}
+                                    socket={socket}
+                                    onClose={handleEndGroupCall}
+                                    isVideo={activeGroupSession.type === 'video'}
+                                    participants={sessionConv.Users || []}
+                                    initiatorId={activeCallConversations.get(String(activeGroupSession.conversationId))}
+                                />
+                            );
+                        })()
+                    )}
                 </div>
             ) : (
-                <div className="hidden md:flex flex-1 items-center justify-center flex-col bg-black/20 backdrop-blur-md border-l border-white/5 relative z-0">
-                    <div className="w-32 h-32 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                        <span className="text-5xl">✨</span>
-                    </div>
-                    <div className="text-gray-300 text-xl font-light">Select a conversation to start chatting</div>
+                <div className="hidden md:flex flex-1 items-center justify-center bg-[#111b21] flex-col gap-4 text-center px-4">
+                    <span className="text-6xl animate-pulse">💬</span>
+                    <h2 className="text-2xl font-bold text-gray-200">Welcome to LinkUp</h2>
+                    <p className="text-gray-400">Select a chat to start messaging.</p>
                 </div>
-            )}
-            {/* Consolidated Call Interface Rendering */}
-            {/* Consolidated Call Interface Rendering */}
-            {(incomingCall || activeCall || incomingGroupCall) && (
-                <CallInterface
-                    call={activeCall || incomingCall || incomingGroupCall}
-                    isIncoming={!!incomingCall || !!incomingGroupCall}
-
-                    onAccept={incomingGroupCall ? handleJoinGroupCall : handleAcceptCall}
-                    onReject={incomingGroupCall ? handleRejectGroupCall : handleRejectCall}
-                    onEnd={handleEndCall}
-                    switchRequest={switchRequest}
-                    onRequestVideo={handleRequestVideoSwitch}
-                    onRespondVideo={handleRespondToSwitch}
-                />
-            )}
-
-            {/* Render Group Call Overlay */}
-            {activeGroupSession && (
-                (() => {
-                    const sessionConv = conversations.find(c => String(c.id) === String(activeGroupSession.conversationId));
-                    // Fallback to activeCallConversations if conv not found (rare, but possible if new)
-                    // If sessionConv is missing, we might have issues.
-                    if (!sessionConv) return null;
-
-                    return (
-                        <GroupCall
-                            conversationId={activeGroupSession.conversationId}
-                            currentUser={user}
-                            socket={socket}
-                            onClose={handleEndGroupCall}
-                            isVideo={activeGroupSession.type === 'video'}
-                            participants={sessionConv.Users || []}
-                            initiatorId={activeCallConversations.get(String(activeGroupSession.conversationId))}
-                        />
-                    );
-                })()
             )}
         </div>
     );
-
 };
 
 export default Chat;
+
