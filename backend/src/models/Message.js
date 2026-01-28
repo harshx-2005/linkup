@@ -55,6 +55,7 @@ const Message = sequelize.define('Message', {
         type: DataTypes.DATE, // For disappearing messages
         allowNull: true,
     },
+}, {
     timestamps: true,
 });
 
