@@ -1097,6 +1097,59 @@ const Chat = () => {
         }
     };
 
+    const handleSwitchCamera = async () => {
+        try {
+            const currentStream = activeCall?.localStream;
+            if (!currentStream) return;
+
+            const videoTrack = currentStream.getVideoTracks()[0];
+            if (!videoTrack) return;
+
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(d => d.kind === 'videoinput');
+            if (videoDevices.length < 2) {
+                toast.info("No other camera found");
+                return;
+            }
+
+            const currentSettings = videoTrack.getSettings();
+            const currentDeviceId = currentSettings.deviceId;
+
+            // Find next device
+            const currentIndex = videoDevices.findIndex(d => d.deviceId === currentDeviceId);
+            const nextDevice = videoDevices[(currentIndex + 1) % videoDevices.length];
+
+            const newStream = await navigator.mediaDevices.getUserMedia({
+                video: { deviceId: { exact: nextDevice.deviceId } },
+                audio: false
+            });
+            const newTrack = newStream.getVideoTracks()[0];
+
+            // Replace track in sender
+            if (peerConnectionRef.current) {
+                const sender = peerConnectionRef.current.getSenders().find(s => s.track?.kind === 'video');
+                if (sender) {
+                    await sender.replaceTrack(newTrack);
+                }
+            }
+
+            // Update local state stream
+            const newLocalStream = new MediaStream([
+                ...currentStream.getAudioTracks(),
+                newTrack
+            ]);
+
+            // Cleanup old track
+            videoTrack.stop();
+
+            setActiveCall(prev => ({ ...prev, localStream: newLocalStream }));
+
+        } catch (error) {
+            console.error("Error switching camera:", error);
+            toast.error("Failed to switch camera");
+        }
+    };
+
     const handleEndCall = () => {
         // Clear timeout
         if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
@@ -1138,11 +1191,7 @@ const Chat = () => {
                 duration
             });
 
-            // Check if we can log (same conversation safeguard)
-            // `activeCall.toUserId` (if caller) or `activeCall.fromUserId` (if receiver? activeCall doesn't store fromUserId usually, it stores `toUserId` or we need to derive).
             const partnerId = activeCall.isCaller ? activeCall.toUserId : activeCall.fromUserId;
-
-            // Find conversation with this partner
             const targetConv = conversations.find(c => String(c.otherUserId) === String(partnerId));
 
             if (targetConv) {
@@ -1153,11 +1202,10 @@ const Chat = () => {
                     messageType: 'system'
                 }, {
                     headers: { Authorization: `Bearer ${token}` }
-                }).then(() => {
+                }).then((res) => {
+                    // CRITICAL FIX: Manually update local messages for the sender
                     if (selectedConversation && String(selectedConversation.id) === String(targetConv.id)) {
-                        // Update UI or refetch?
-                        // Adding to messages manually might duplicate if socket comes back?
-                        // Let socket handle it.
+                        setMessages(prev => [...prev, res.data]);
                     }
                 }).catch(e => console.error("Failed to log call end:", e));
             }
@@ -1523,6 +1571,7 @@ const Chat = () => {
                             switchRequest={switchRequest}
                             onRequestVideo={handleRequestVideoSwitch}
                             onRespondVideo={handleRespondToSwitch}
+                            onSwitchCamera={handleSwitchCamera}
                         />
                     )}
 
