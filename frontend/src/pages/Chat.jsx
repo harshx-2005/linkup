@@ -48,6 +48,33 @@ const Chat = () => {
     const iceCandidatesQueue = useRef([]);
     const tempRemoteStreamRef = useRef(null); // Fix for receiver crash
 
+    // Default STUN servers as fallback
+    const iceServersRef = useRef([
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
+        { urls: 'stun:global.stun.twilio.com:3478' }
+    ]);
+
+    // Fetch Metered.ca TURN credentials
+    useEffect(() => {
+        const fetchIceServers = async () => {
+            try {
+                const response = await fetch("https://linkupchat.metered.live/api/v1/turn/credentials?apiKey=797d36c146249a0ba093a95dd2484bf5942a");
+                const servers = await response.json();
+                if (Array.isArray(servers)) {
+                    console.log("Updated ICE Servers with Metered credentials");
+                    iceServersRef.current = servers;
+                }
+            } catch (error) {
+                console.error("Failed to fetch TURN credentials, using default STUN", error);
+            }
+        };
+        fetchIceServers();
+    }, []);
+
     useEffect(() => {
         selectedConversationRef.current = selectedConversation;
         messagesRef.current = messages;
@@ -520,14 +547,7 @@ const Chat = () => {
     // --- WebRTC Logic ---
     const createPeerConnection = (targetUserId) => {
         const pc = new RTCPeerConnection({
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' },
-                { urls: 'stun:global.stun.twilio.com:3478' }
-            ],
+            iceServers: iceServersRef.current,
             bundlePolicy: 'max-bundle',
             icecandidatePoolSize: 10
         });
