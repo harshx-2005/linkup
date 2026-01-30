@@ -510,7 +510,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                                 {((message.content && message.messageType !== 'file' && message.messageType !== 'audio') ||
                                     (message.content && message.messageType === 'file' && message.content !== 'File: ' + message.name) ||
                                     (message.messageType === 'audio' && message.content && message.content !== 'Voice Message' && message.content !== 'Audio Message')) && (
-                                        <div className={`px-4 py-2 ${message.attachmentUrl ? 'pt-1' : ''} relative z-10 break-words text-[15px] leading-relaxed`}>
+                                        <div className={`px-4 py-2 ${message.attachmentUrl ? 'pt-1' : ''} relative z-10 break-all whitespace-pre-wrap text-[15px] leading-relaxed`}>
                                             {(message.messageType === 'text' || message.messageType === 'system' || message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'audio') && (<>
                                                 {(() => {
                                                     let parsed = null;
