@@ -861,6 +861,8 @@ const ChatWindow = ({
                         onForward={handleForward}
                         onReply={handleReply}
                         onReplyClick={handleScrollToMessage}
+                        onReact={onReact}
+                        onShowInfo={onShowInfo}
                     />
                 ))}
                 <div ref={messagesEndRef} />

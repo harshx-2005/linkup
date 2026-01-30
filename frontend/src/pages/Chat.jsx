@@ -1561,20 +1561,6 @@ const Chat = () => {
                         </div>
                     )}
 
-                    {(incomingCall || activeCall || incomingGroupCall) && (
-                        <CallInterface
-                            call={activeCall || incomingCall || incomingGroupCall}
-                            isIncoming={!!incomingCall || !!incomingGroupCall}
-                            onAccept={incomingGroupCall ? handleJoinGroupCall : handleAcceptCall}
-                            onReject={incomingGroupCall ? handleRejectGroupCall : handleRejectCall}
-                            onEnd={handleEndCall}
-                            switchRequest={switchRequest}
-                            onRequestVideo={handleRequestVideoSwitch}
-                            onRespondVideo={handleRespondToSwitch}
-                            onSwitchCamera={handleSwitchCamera}
-                        />
-                    )}
-
                     {activeGroupSession && (
                         (() => {
                             const sessionConv = conversations.find(c => String(c.id) === String(activeGroupSession.conversationId));
@@ -1599,6 +1585,21 @@ const Chat = () => {
                     <h2 className="text-2xl font-bold text-gray-200">Welcome to LinkUp</h2>
                     <p className="text-gray-400">Select a chat to start messaging.</p>
                 </div>
+            )}
+
+            {/* Call Interface - Moved to Root to Cover Sidebar */}
+            {(incomingCall || activeCall || incomingGroupCall) && (
+                <CallInterface
+                    call={activeCall || incomingCall || incomingGroupCall}
+                    isIncoming={!!incomingCall || !!incomingGroupCall}
+                    onAccept={incomingGroupCall ? handleJoinGroupCall : handleAcceptCall}
+                    onReject={incomingGroupCall ? handleRejectGroupCall : handleRejectCall}
+                    onEnd={handleEndCall}
+                    switchRequest={switchRequest}
+                    onRequestVideo={handleRequestVideoSwitch}
+                    onRespondVideo={handleRespondToSwitch}
+                    onSwitchCamera={handleSwitchCamera}
+                />
             )}
         </div>
     );
