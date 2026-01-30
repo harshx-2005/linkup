@@ -461,6 +461,23 @@ const Chat = () => {
             }));
         };
 
+        const handleMessageReaction = (data) => {
+            const currentSelected = selectedConversationRef.current;
+            if (currentSelected && String(data.conversationId) === String(currentSelected.id)) {
+                setMessages((prev) => prev.map((msg) => {
+                    if (msg.id === data.messageId) {
+                        const reactions = msg.reactions || [];
+                        const existingIdx = reactions.findIndex(r => r.userId === data.reaction.userId && r.emoji === data.reaction.emoji);
+                        if (existingIdx === -1) {
+                            return { ...msg, reactions: [...reactions, data.reaction] };
+                        }
+                        return msg;
+                    }
+                    return msg;
+                }));
+            }
+        };
+
         socket.on('receive_message', handleReceiveMessage);
         socket.on('user_typing', handleUserTyping);
         socket.on('user_stop_typing', handleUserStopTyping);
@@ -470,6 +487,7 @@ const Chat = () => {
         socket.on('messages_delivered', handleMessagesDelivered);
         socket.on('message_edited', handleMessageEdited);
         socket.on('message_deleted', handleMessageDeleted);
+        socket.on('message_reaction', handleMessageReaction);
 
 
 
@@ -483,6 +501,7 @@ const Chat = () => {
             socket.off('messages_delivered', handleMessagesDelivered);
             socket.off('message_edited', handleMessageEdited);
             socket.off('message_deleted', handleMessageDeleted);
+            socket.off('message_reaction', handleMessageReaction);
         };
     }, [user?.id, markMessagesAsSeen, markMessagesAsDelivered]);
 
@@ -860,28 +879,25 @@ const Chat = () => {
         setActiveGroupSession({ conversationId: selectedConversation.id, type });
     };
 
-    // [NEW] Reaction Handler
-    const handleReact = (messageId, emoji) => {
-        if (!conversation?.id) return;
-        socket.emit('add_reaction', {
-            conversationId: conversation.id,
-            messageId,
-            reaction: { userId: currentUser.id, emoji }
-        });
-    };
-
     // [NEW] Message Info State
     const [messageInfo, setMessageInfo] = useState(null); // The message object to show info for
 
-    // [NEW] Toggle Disappearing
-    const toggleDisappearing = () => {
-        if (!conversation?.id) return;
-        const newState = !conversation.disappearingEnabled;
-        socket.emit('toggle_disappearing', {
-            conversationId: conversation.id,
-            state: newState
-        });
-        setShowMenu(false);
+    // [NEW] Toggle Disappearing - REIMPLEMENTED correctly
+    const toggleDisappearing = async () => {
+        if (!selectedConversation?.id) return;
+        try {
+            const newState = !selectedConversation.disappearingEnabled;
+            const token = localStorage.getItem('token');
+            await axios.put(`/api/conversations/${selectedConversation.id}/disappearing`, { enabled: newState }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // Update local state
+            setConversations(prev => prev.map(c => c.id === selectedConversation.id ? { ...c, disappearingEnabled: newState } : c));
+            setSelectedConversation(prev => ({ ...prev, disappearingEnabled: newState }));
+            socket.emit('toggle_disappearing', { conversationId: selectedConversation.id, state: newState });
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleEndGroupCall = () => {
@@ -1406,6 +1422,19 @@ const Chat = () => {
             socket.emit('delete_message', { conversationId: selectedConversation.id, messageId, deleteForEveryone });
         } catch (error) {
             console.error('Error deleting message:', error);
+        }
+    };
+
+    const handleReact = async (messageId, emoji) => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post(`/api/messages/${messageId}/react`, { emoji }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // Socket event is emitted by backend usually, but for immediate local update:
+            // socket.emit('message_reaction', ...);
+        } catch (error) {
+            console.error('Error reacting to message:', error);
         }
     };
 

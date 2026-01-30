@@ -180,10 +180,10 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
             {/* Custom Context Menu */}
             {contextMenu && (
                 <>
-                    <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} />
+                    <div className="fixed inset-0 z-[9998]" onClick={() => setContextMenu(null)} />
                     <div
                         ref={menuRef}
-                        className="fixed bg-[#233138] border border-[#374248] rounded-lg shadow-2xl z-50 py-2 flex flex-col min-w-[200px] animate-in fade-in zoom-in-95 origin-top overflow-hidden"
+                        className="fixed bg-[#233138] border border-[#374248] rounded-lg shadow-2xl z-[9999] py-2 flex flex-col min-w-[200px] animate-in fade-in zoom-in-95 origin-top overflow-hidden"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
                         {/* Reactions Grid */}
@@ -598,7 +598,7 @@ const MessageBubble = ({ message, isOwn, isGroup, onEdit, onDelete, onImageClick
                         {isOwn && !message.deletedForEveryone && (
                             <span className="flex items-center">
                                 {message.seenBy && message.seenBy.length > 0 ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-3.5 h-3.5 ${message.attachmentUrl && !message.content ? 'text-blue-400' : 'text-sky-300'}`}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-3.5 h-3.5 ${message.attachmentUrl && !message.content ? 'text-blue-400' : 'text-blue-500'}`}>
                                         <path d="M18 6L7 17l-5-5" />
                                         <path d="M22 10l-7.5 7.5L13 16" />
                                     </svg>
