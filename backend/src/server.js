@@ -58,9 +58,8 @@ const startServer = async () => {
         await sequelize.authenticate();
         console.log('Database connected successfully.');
 
-        // Sync models (Enable alter to update schema)
-        await sequelize.sync({ alter: true });
-        console.log('Database synced.');
+        // Sync models (Safe sync for TiDB)
+        await sequelize.sync();
         console.log('Database synced.');
 
 
