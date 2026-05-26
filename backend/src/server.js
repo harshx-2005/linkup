@@ -24,7 +24,7 @@ app.use(cors({
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.includes(origin)) {
+        if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
             return callback(null, true);
         } else {
             // For debugging/development, we might want to allow this but let's be explicit
@@ -59,6 +59,14 @@ const startServer = async () => {
         console.log('Database connected successfully.');
 
         // Sync models (Safe sync for TiDB)
+        try {
+            await sequelize.query('ALTER TABLE `Users` ADD COLUMN IF NOT EXISTS `isVerified` TINYINT(1) DEFAULT 0;');
+            await sequelize.query('ALTER TABLE `Users` ADD COLUMN IF NOT EXISTS `otpCode` VARCHAR(255) DEFAULT NULL;');
+            await sequelize.query('ALTER TABLE `Users` ADD COLUMN IF NOT EXISTS `otpExpires` DATETIME DEFAULT NULL;');
+            console.log('OTP columns verified/created.');
+        } catch (err) {
+            console.log('Note: OTP columns might already exist.', err.message);
+        }
         await sequelize.sync();
         console.log('Database synced.');
 

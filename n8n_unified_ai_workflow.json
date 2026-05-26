@@ -1,0 +1,376 @@
+{
+  "name": "LinkUp All-in-One AI Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "smart-replies",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "webhook-smart-replies",
+      "name": "Webhook: Smart Replies"
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=YOUR_GEMINI_API_KEY",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "contents",
+              "value": "={{ [{\n    \"role\": \"user\",\n    \"parts\": [{\n        \"text\": \"Act as the user (me) replying to a friend in a chat app. Generate 5 short, casual, and natural replies based on the incoming message context.\\n\\nRules:\\n1. Be conversational and human-like (use slang if appropriate, e.g. 'lol', 'yeah').\\n2. Do NOT act like an AI or assistant.\\n3. Keep it brief (1-5 words preferred, max 10).\\n4. **CRITICAL**: If the incoming message is NOT in English, return an empty array [] (do not generate replies).\\n\\nIncoming Context:\\n\" + $json.body.chat + \"\\n\\nOutput ONLY a valid JSON array of strings, e.g.: [\\\"Sounds good\\\", \\\"Where are you?\\\", \\\"Lol no\\\", \\\"I'm busy\\\", \\\"Call me\\\"]\\n\\nDo not include ```json blocks.\"\n    }]\n}] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        220,
+        0
+      ],
+      "id": "gemini-api",
+      "name": "Gemini API"
+    },
+    {
+      "parameters": {
+        "jsCode": "let rawContent = items[0].json.candidates[0].content.parts[0].text;\n\n// Clean up formatting if AI adds markdown\nlet content = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();\n\nlet replies = [];\ntry {\n  replies = JSON.parse(content);\n} catch (e) {\n  replies = [\"👍\", \"Okay\", \"Sounds good\"];\n}\n\nreturn [{ json: { output: replies } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "format-gemini-output",
+      "name": "Format Output"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ],
+      "id": "respond-smart-replies",
+      "name": "Respond"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "imagine",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "id": "webhook-imagine",
+      "name": "Webhook: Imagine"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://image.pollinations.ai/prompt/{{encodeURIComponent($json.body.prompt)}}?nologo=true",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer pk_3n9GJUr4Rv7JuzSE"
+            }
+          ]
+        },
+        "options": {
+          "responseFormat": "file",
+          "fileName": "generated.jpg"
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        220,
+        300
+      ],
+      "id": "pollinations-api",
+      "name": "Pollinations Gen"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://linkup-ewud.onrender.com/api/upload/bot",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file",
+              "parameterType": "formBinaryData",
+              "value": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        440,
+        300
+      ],
+      "id": "upload-image",
+      "name": "Upload to Backend"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://linkup-ewud.onrender.com/api/messages/bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "conversationId",
+              "value": "={{ $('Webhook: Imagine').item.json.body.conversationId }}"
+            },
+            {
+              "name": "content",
+              "value": "🎨 Generated by AI:\n> {{ $('Webhook: Imagine').item.json.body.prompt }}"
+            },
+            {
+              "name": "messageType",
+              "value": "image"
+            },
+            {
+              "name": "attachmentUrl",
+              "value": "={{$json.url}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        660,
+        300
+      ],
+      "id": "send-image-to-chat",
+      "name": "Send to Chat"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-chat",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        600
+      ],
+      "id": "webhook-ai-chat",
+      "name": "Webhook: AI Chat"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1,
+      "position": [
+        220,
+        600
+      ],
+      "id": "ai-agent",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        220,
+        840
+      ],
+      "id": "openai-model",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://linkup-ewud.onrender.com/api/messages/bot",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "conversationId",
+              "value": "={{ $node[\"Webhook: AI Chat\"].json.body.conversationId }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "name": "messageType",
+              "value": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        580,
+        600
+      ],
+      "id": "reply-ai-chat",
+      "name": "Reply to Chat"
+    }
+  ],
+  "connections": {
+    "Webhook: Smart Replies": {
+      "main": [
+        [
+          {
+            "node": "Gemini API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini API": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Output": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Imagine": {
+      "main": [
+        [
+          {
+            "node": "Pollinations Gen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pollinations Gen": {
+      "main": [
+        [
+          {
+            "node": "Upload to Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Backend": {
+      "main": [
+        [
+          {
+            "node": "Send to Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: AI Chat": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_language_model": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_language_model",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply to Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
