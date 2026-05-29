@@ -63,3 +63,40 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
+
+/* Premium Background and Accent Patterns */
+.premium-bg {
+    background: #09090b;
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(30, 41, 59, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(76, 29, 149, 0.15) 0%, transparent 45%),
+        #09090b;
+}
+
+.chat-wallpaper {
+    background-color: #0b0b0f;
+    background-image: 
+        radial-gradient(at 100% 0%, rgba(76, 29, 149, 0.08) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+    position: relative;
+}
+
+.chat-wallpaper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    pointer-events: none;
+    background-image: radial-gradient(#ffffff 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+}
+
+/* Animations for Chat Skeletons & Transitions */
+@keyframes pulse-short {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .7; }
+}
+
+.animate-pulse-short {
+    animation: pulse-short 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

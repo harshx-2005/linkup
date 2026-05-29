@@ -9,6 +9,8 @@ import CallModal from '../components/CallModal';
 
 import CallInterface from '../components/CallInterface';
 import GroupCall from '../components/GroupCall';
+import { SidebarSkeleton, ChatSkeleton } from '../components/SkeletonLoader';
+import CreateChatModal from '../components/CreateChatModal';
 
 const Chat = () => {
     // ... (rest of the component)
@@ -16,6 +18,11 @@ const Chat = () => {
     const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messages, setMessages] = useState([]);
+    
+    // UI Load States
+    const [loadingConversations, setLoadingConversations] = useState(false);
+    const [loadingMessages, setLoadingMessages] = useState(false);
+    const [showCreateChat, setShowCreateChat] = useState(false);
 
     // Call State
     const [incomingCall, setIncomingCall] = useState(null); // { offer, from, fromUserId, isVideo, ... }
@@ -1016,7 +1023,6 @@ const Chat = () => {
                 isCaller: false,
                 localStream: stream,
                 toUserId: incomingCall.fromUserId,
-                toUserId: incomingCall.fromUserId,
                 remoteStream: tempRemoteStreamRef.current || prev?.remoteStream || null
             }));
             callStartTimeRef.current = Date.now();
@@ -1248,6 +1254,7 @@ const Chat = () => {
 
 
     const fetchConversations = async () => {
+        setLoadingConversations(true);
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get('/api/conversations', {
@@ -1283,6 +1290,8 @@ const Chat = () => {
             });
         } catch (error) {
             console.error('Error fetching conversations:', error);
+        } finally {
+            setLoadingConversations(false);
         }
     };
 
@@ -1292,6 +1301,7 @@ const Chat = () => {
     // ...
 
     const fetchMessages = async (conversationId, pageNum = 1) => {
+        if (pageNum === 1) setLoadingMessages(true);
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get(`/api/messages/${conversationId}?page=${pageNum}&limit=20`, {
@@ -1318,6 +1328,8 @@ const Chat = () => {
             }
         } catch (error) {
             console.error('Error fetching messages:', error);
+        } finally {
+            if (pageNum === 1) setLoadingMessages(false);
         }
     };
 
@@ -1489,42 +1501,51 @@ const Chat = () => {
                 w-full md:w-[380px] flex-shrink-0 flex-col z-20 h-full
                 border-r border-white/5 shadow-2xl backdrop-blur-3xl bg-black/40
             `}>
-                <Sidebar
-                    conversations={conversations}
-                    onSelectConversation={handleSelectConversation}
-                    selectedConversation={selectedConversation}
-                    onlineUsers={onlineUsers}
-                    onNewConversation={handleNewConversation}
-                />
+                {loadingConversations ? (
+                    <SidebarSkeleton />
+                ) : (
+                    <Sidebar
+                        conversations={conversations}
+                        onSelectConversation={handleSelectConversation}
+                        selectedConversation={selectedConversation}
+                        onlineUsers={onlineUsers}
+                        onNewConversation={handleNewConversation}
+                        onCreateChatClick={() => setShowCreateChat(true)}
+                    />
+                )}
             </div>
 
             {selectedConversation ? (
                 <div className="flex-1 flex flex-col h-full relative z-10 glass-panel">
-                    <ChatWindow
-                        conversation={selectedConversation}
-                        messages={messages}
-                        currentUser={user}
-                        onSendMessage={handleSendMessage}
-                        typingUser={typingUser}
-                        socket={socket}
-                        onEditMessage={handleEditMessage}
-                        onDeleteMessage={handleDeleteMessage}
-                        onStartCall={handleStartCall}
-                        onStartGroupCall={handleStartGroupCall}
-                        activeCallConversations={activeCallConversations}
-                        onJoinGroupCall={handleJoinGroupCall}
-                        onTyping={() => socket.emit('typing', { conversationId: selectedConversation.id, userId: user.id, userName: user.name })}
-                        onStopTyping={() => socket.emit('stop_typing', { conversationId: selectedConversation.id, userId: user.id })}
-                        onlineUsers={onlineUsers}
-                        onAcceptRequest={handleAcceptRequest}
-                        onRejectRequest={handleRejectRequest}
-                        onBlockUser={handleBlockUser}
-                        onClearChat={handleClearChat}
-                        onBack={() => setSelectedConversation(null)}
-                        onReact={handleReact}
-                        onToggleDisappearing={toggleDisappearing}
-                        onShowInfo={(msg) => setMessageInfo(msg)}
-                    />
+                    {loadingMessages ? (
+                        <ChatSkeleton />
+                    ) : (
+                        <ChatWindow
+                            conversation={selectedConversation}
+                            messages={messages}
+                            currentUser={user}
+                            onSendMessage={handleSendMessage}
+                            typingUser={typingUser}
+                            socket={socket}
+                            onEditMessage={handleEditMessage}
+                            onDeleteMessage={handleDeleteMessage}
+                            onStartCall={handleStartCall}
+                            onStartGroupCall={handleStartGroupCall}
+                            activeCallConversations={activeCallConversations}
+                            onJoinGroupCall={handleJoinGroupCall}
+                            onTyping={() => socket.emit('typing', { conversationId: selectedConversation.id, userId: user.id, userName: user.name })}
+                            onStopTyping={() => socket.emit('stop_typing', { conversationId: selectedConversation.id, userId: user.id })}
+                            onlineUsers={onlineUsers}
+                            onAcceptRequest={handleAcceptRequest}
+                            onRejectRequest={handleRejectRequest}
+                            onBlockUser={handleBlockUser}
+                            onClearChat={handleClearChat}
+                            onBack={() => setSelectedConversation(null)}
+                            onReact={handleReact}
+                            onToggleDisappearing={toggleDisappearing}
+                            onShowInfo={(msg) => setMessageInfo(msg)}
+                        />
+                    )}
 
                     {messageInfo && (
                         <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setMessageInfo(null)}>
@@ -1572,8 +1593,8 @@ const Chat = () => {
                                             <div className="space-y-2">
                                                 {messageInfo.deliveredTo && messageInfo.deliveredTo.length > 0 ? (
                                                     messageInfo.deliveredTo.map((uid, i) => (
-                                                        <div key={i} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition">
-                                                            <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold text-white">
+                                                        <div key={i} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition flex-shrink-0">
+                                                            <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                                                                 {uid}
                                                             </div>
                                                             <span className="text-gray-200 text-sm">User {uid}</span>
@@ -1609,10 +1630,17 @@ const Chat = () => {
                     )}
                 </div>
             ) : (
-                <div className="hidden md:flex flex-1 items-center justify-center bg-[#111b21] flex-col gap-4 text-center px-4">
-                    <span className="text-6xl animate-pulse">💬</span>
-                    <h2 className="text-2xl font-bold text-gray-200">Welcome to LinkUp</h2>
-                    <p className="text-gray-400">Select a chat to start messaging.</p>
+                <div className="hidden md:flex flex-1 items-center justify-center bg-transparent flex-col gap-4 text-center px-4 relative z-10">
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/5 p-12 rounded-[2rem] shadow-2xl flex flex-col items-center max-w-sm animate-in fade-in zoom-in-95 duration-500 relative overflow-hidden">
+                        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-500/5 to-purple-600/5 rounded-3xl blur-xl"></div>
+                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-extrabold mb-6 shadow-lg shadow-blue-500/20 animate-pulse">
+                            💬
+                        </div>
+                        <h2 className="text-2xl font-extrabold text-white tracking-tight">Welcome to LinkUp</h2>
+                        <p className="text-gray-400 text-sm mt-3 px-4 leading-relaxed">
+                            Select a chat from the sidebar list or start a new conversation to start messaging.
+                        </p>
+                    </div>
                 </div>
             )}
 
@@ -1628,6 +1656,13 @@ const Chat = () => {
                     onRequestVideo={handleRequestVideoSwitch}
                     onRespondVideo={handleRespondToSwitch}
                     onSwitchCamera={handleSwitchCamera}
+                />
+            )}
+
+            {showCreateChat && (
+                <CreateChatModal
+                    onClose={() => setShowCreateChat(false)}
+                    onChatCreated={handleNewConversation}
                 />
             )}
         </div>
