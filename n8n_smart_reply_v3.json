@@ -1,0 +1,116 @@
+{
+    "name": "LinkUp Smart Replies V3",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "smart-replies",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook",
+            "name": "Webhook"
+        },
+        {
+            "parameters": {
+                "resource": "chat",
+                "model": "gpt-4o-mini",
+                "messages": {
+                    "values": [
+                        {
+                            "content": "You are a helpful assistant. Generate 3 short, natural, concise responses for the user based on the chat history provided. \n\nOutput ONLY a valid JSON array of strings, like this: [\"Yes, sure\", \"I will check\", \"Not right now\"]\n\nDo not include ```json blocks."
+                        },
+                        {
+                            "role": "user",
+                            "content": "={{ $json.body.chat }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.openAi",
+            "typeVersion": 1,
+            "position": [
+                220,
+                0
+            ],
+            "id": "openai-classic",
+            "name": "OpenAI Classic",
+            "credentials": {
+                "openAiApi": {
+                    "id": "YOUR_CREDENTIAL_ID_HERE",
+                    "name": "OpenAI account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "let content = items[0].json.message.content;\n\n// Clean up formatting if AI adds markdown\ncontent = content.replace(/```json/g, '').replace(/```/g, '').trim();\n\nlet replies = [];\ntry {\n  replies = JSON.parse(content);\n} catch (e) {\n  replies = [\"👍\", \"Okay\", \"Sounds good\"];\n}\n\nreturn [{ json: { output: replies } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                440,
+                0
+            ],
+            "id": "format-json",
+            "name": "Format Output"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json.output }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                660,
+                0
+            ],
+            "id": "respond",
+            "name": "Respond"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "OpenAI Classic",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Classic": {
+            "main": [
+                [
+                    {
+                        "node": "Format Output",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format Output": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

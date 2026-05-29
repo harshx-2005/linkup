@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import CreateChatModal from './CreateChatModal';
 import SettingsModal from './SettingsModal';
 import { useAuth } from '../context/AuthContext';
 
-const Sidebar = ({ conversations = [], onSelectConversation, selectedConversation, onlineUsers, onNewConversation, onCreateChatClick }) => {
+const Sidebar = ({ conversations = [], onSelectConversation, selectedConversation, onlineUsers, onNewConversation }) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [showCreateChat, setShowCreateChat] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const { user } = useAuth();
 
@@ -32,7 +34,7 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </button>
-                    <button onClick={onCreateChatClick} className="p-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20 transition cursor-pointer">
+                    <button onClick={() => setShowCreateChat(true)} className="p-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20 transition cursor-pointer">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </button>
                 </div>
@@ -87,9 +89,9 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                     <div
                         key={conv.id}
                         onClick={() => onSelectConversation(conv)}
-                        className={`group p-3 mx-2 my-1.5 rounded-2xl flex items-center cursor-pointer transition-all duration-300 backdrop-blur-sm border ${selectedConversation?.id === conv.id
-                            ? 'bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-l-4 border-l-blue-500 border-t-white/10 border-r-white/10 border-b-white/10 shadow-[0_0_20px_rgba(59,130,246,0.08)]'
-                            : 'hover:bg-white/5 border-transparent'
+                        className={`group p-3 mx-2 my-1 rounded-2xl flex items-center cursor-pointer transition-all duration-300 backdrop-blur-sm ${selectedConversation?.id === conv.id
+                            ? 'bg-white/10 shadow-lg border border-white/10'
+                            : 'hover:bg-white/5 border border-transparent'
                             }`}
                     >
                         <div className="relative mr-4 shrink-0">
@@ -180,6 +182,15 @@ const Sidebar = ({ conversations = [], onSelectConversation, selectedConversatio
                     </div>
                 ))}
             </div>
+            {showCreateChat && (
+                <CreateChatModal
+                    onClose={() => setShowCreateChat(false)}
+                    onChatCreated={(newChat) => {
+                        onNewConversation(newChat);
+                        setShowCreateChat(false);
+                    }}
+                />
+            )}
 
             {showSettings && (
                 <SettingsModal onClose={() => setShowSettings(false)} />

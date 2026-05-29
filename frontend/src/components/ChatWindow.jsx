@@ -844,7 +844,7 @@ const ChatWindow = ({
 
             {/* Messages */}
             <div
-                className="flex-1 overflow-y-auto overflow-x-hidden p-4 min-h-0 scroll-smooth custom-scrollbar relative chat-wallpaper"
+                className="flex-1 overflow-y-auto overflow-x-hidden p-4 min-h-0 scroll-smooth custom-scrollbar relative"
                 id="messages-container"
                 onScroll={handleScroll}
             >
